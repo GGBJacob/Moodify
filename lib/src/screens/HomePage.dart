@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:moodify/src/components/CustomBlock.dart';
 
 //TODO: Create page
 
@@ -21,28 +22,69 @@ class _HomePageState extends State<HomePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[200],
       body: Center(
         child:
           Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,  //spaces all children evenly in vertical axis
+
             children: [
-              _topText(),
-              _middleImage(),
-              _facesRow(),
+              _firstBlock(),
+              _secondBlock(),
+              _thirdBlock(),
+              _fourthBlock()
             ],
           )
       ),
     );
   }
 
-  Widget _topText()
+  Widget _firstBlock()
   {
-    return Text(style: TextStyle(fontSize: 45),'Your week: $_count%');
+    return CustomBlock(
+        child: Column(
+            children: [
+              Text(style: TextStyle(fontSize: 45),'Your week: $_count%'),
+              Icon(Icons.sentiment_satisfied, size:150, color: Colors.cyan),
+            ]
+        )
+    );
   }
 
-  Widget _middleImage()
+  Widget _secondBlock()
   {
-    return FlutterLogo(size: 150);
+    return CustomBlock(
+        child: Column(
+            children: [
+              Text(style: TextStyle(fontSize: 30),'Moods:'),
+              _facesRow(),
+            ]
+        )
+    );
+  }
+
+  Widget _thirdBlock()
+  {
+    return CustomBlock(
+        child: Column(
+            children: [
+              Text(style: TextStyle(fontSize: 30),'Emotions:'),
+              Text(style: TextStyle(fontSize: 20),'Happy, exited, tired'),
+            ]
+        )
+    );
+  }
+
+  Widget _fourthBlock()
+  {
+    return CustomBlock(
+        child: Column(
+            children: [
+              Text(style: TextStyle(fontSize: 30),'Activities:'),
+              _activitiesRow(),
+            ]
+        )
+    );
   }
 
   Widget _facesRow()
@@ -60,30 +102,17 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  List<BottomNavigationBarItem> _navbarItems()
+  Widget _activitiesRow()
   {
-    return const [
-      BottomNavigationBarItem(
-          icon: Icon(Icons.mood),
-          label: ''
-      ),
-      BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_month),
-          label: ''
-      ),
-      BottomNavigationBarItem(
-          icon: Icon(null),
-          label: ''
-      ),
-      BottomNavigationBarItem(
-          icon: Icon(Icons.question_mark),
-          label: ''
-      ),
-      BottomNavigationBarItem(
-          icon: Icon(Icons.more_horiz_rounded),
-          label: ''
-      ),
-    ];
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(Icons.run_circle_outlined, size:50),
+        Icon(Icons.local_drink_outlined, size:50),
+        Icon(Icons.menu_book_rounded, size:50),
+        Icon(Icons.sports_gymnastics_rounded, size:50),
+        Icon(Icons.bed_rounded, size:50),
+        ],
+    );
   }
-
 }
