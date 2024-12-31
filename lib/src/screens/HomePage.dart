@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+//TODO: Create page
+
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -29,16 +31,6 @@ class _HomePageState extends State<HomePage>
               _facesRow(),
             ],
           )
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => setState(() {if (_count < 100) _count++;}),
-        shape: CircleBorder(),
-        child: Icon(Icons.add),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        items: _navbarItems()
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:moodify/src/components/Menu.dart';
 import 'package:moodify/src/screens/HomePage.dart';
 
 void main() {
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         useMaterial3: true,
       ),
-      home: HomePage()
+      home: Menu()
     );
   }
 }
