@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
+import '../services/NotesService.dart';
 
 
 class NewNotePage extends StatefulWidget {
@@ -11,9 +12,9 @@ class NewNotePage extends StatefulWidget {
 }
 
 class _NewNotePageState extends State<NewNotePage>
-{final
+{
   //Time 
-  DateTime _now = DateTime.now();
+  final DateTime _now = DateTime.now();
   final List<String> _months = [
     "January",
     "February",
@@ -40,13 +41,30 @@ class _NewNotePageState extends State<NewNotePage>
     [Icons.sentiment_very_satisfied_rounded, Colors.green],
   ];
   
-  //Emotions
-  final List<String> _emotions = ["Happy", "Sad", "Angry", "Excited", "Calm"];
-  final List<String> _selectedEmotions = [];
-  
-  //Activities
-  final List<String> _activities = ["Yoga", "Walk", "School", "Friends", "Job"];
-  final List<String> _selectedActivities = [];
+  //Emotions and Activities
+  List<Map<String, dynamic>> _emotions = [];
+  List<Map<String, dynamic>> _activities = [];
+  final List<int> _selectedEmotions = [];
+  final List<int> _selectedActivities = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData(); // Asynchronous data loading
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final emotions = await NotesService.instance.fetchEmotions();
+      final activities = await NotesService.instance.fetchActivities();
+      setState(() {
+        _emotions = emotions;
+        _activities = activities;
+      });
+    } catch (e) {
+      print("Error loading data: $e");
+    }
+  }
 
   //Note
   final TextEditingController _textController = TextEditingController();
@@ -85,12 +103,12 @@ class _NewNotePageState extends State<NewNotePage>
 
                           //Emotions
                           Text(style: TextStyle(fontSize: 30),'Emotions:'),
-                          _interactiveList(_selectedEmotions, () => _openInteractiveDialog("Emotions", _emotions, _selectedEmotions)), // Passing interactive dialog as reference
+                          _interactiveList(_selectedEmotions ,_emotions, () => _openInteractiveDialog("Emotions", _emotions, _selectedEmotions)), // Passing interactive dialog as reference
                           SizedBox(height:20),
 
                           //Activities
                           Text(style: TextStyle(fontSize: 30),'Activities:'),
-                          _interactiveList(_selectedActivities, () => _openInteractiveDialog("Activities", _activities, _selectedActivities)), // Passing interactive dialog as reference
+                          _interactiveList(_selectedActivities ,_activities, () => _openInteractiveDialog("Activities", _activities, _selectedActivities)), // Passing interactive dialog as reference
                           SizedBox(height:20),
 
                           //Note
@@ -115,10 +133,11 @@ class _NewNotePageState extends State<NewNotePage>
                                 //Validation
                                 if(_formGlobalKey.currentState!.validate() && _selectedMood!=null){
                                   _formGlobalKey.currentState!.save();
+                                  NotesService.instance.saveNote(_selectedMood!, _selectedActivities, _selectedEmotions, _textFormOutput);
+                                  Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text("Added!"), behavior: SnackBarBehavior.floating), // "floating" prevents moving of the "addNote" button
                                   );
-                                  Navigator.pop(context);
                                 }
                               },
                               style: FilledButton.styleFrom(
@@ -164,8 +183,10 @@ class _NewNotePageState extends State<NewNotePage>
   }
 
 
-  Widget _interactiveList(List<String> listElements, VoidCallback onTapFunction)
+  Widget _interactiveList(List<int> selectedElements, List<Map<String, dynamic>> listElements, VoidCallback onTapFunction)
   {
+    final filteredElements = listElements.where((element) => selectedElements.contains(element['id'])).toList();
+
     return Center(
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -175,9 +196,9 @@ class _NewNotePageState extends State<NewNotePage>
               spacing: 8.0,
               runSpacing: 5.0,
               children: [
-                ...listElements.map(
-                  (emotion) => Chip(
-                    label: Text(emotion),
+                ...filteredElements.map(
+                  (element) => Chip(
+                    label: Text(element['name']),
                     backgroundColor: Colors.blue,
                     labelStyle: TextStyle(color: Colors.white),
                   ),
@@ -196,7 +217,7 @@ class _NewNotePageState extends State<NewNotePage>
     );
   }
 
-  Future<void> _openInteractiveDialog(String title, List<String> elements, List<String> selectedElements) => showDialog(
+  Future<void> _openInteractiveDialog(String title, List<Map<String, dynamic>> elements, List<int> selectedElements) => showDialog(
     context: context,
     builder: (context) => StatefulBuilder(
       builder: (context, setDialogState) {
@@ -205,15 +226,15 @@ class _NewNotePageState extends State<NewNotePage>
           content: Wrap(
             spacing: 8.0,
             children: elements.map((element) {
-              final isSelected = selectedElements.contains(element);
+              final isSelected = selectedElements.contains(element['id']);
               return GestureDetector(
                 onTap: () {
                   // Zmieniamy stan dialogu
                   setDialogState(() {
                     if (isSelected) {
-                      selectedElements.remove(element);
+                      selectedElements.remove(element['id']);
                     } else {
-                      selectedElements.add(element);
+                      selectedElements.add(element['id']);
                     }
                   });
 
@@ -221,7 +242,7 @@ class _NewNotePageState extends State<NewNotePage>
                   setState(() {});
                 },
                 child: Chip(
-                  label: Text(element),
+                  label: Text(element['name']),
                   backgroundColor:
                   isSelected ? Colors.blue : Colors.grey[300],
                   labelStyle: TextStyle(
