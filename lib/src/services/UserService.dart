@@ -14,7 +14,7 @@ class UserService {
 
   final SupabaseClient supabase  = Supabase.instance.client;
 
-  String? user_id;
+  late String user_id;
 
   void _initialize() async {
     user_id = await getOrGenerateUserId();

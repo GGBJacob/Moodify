@@ -9,7 +9,7 @@ class NotesService {
 
   static NotesService get instance => _instance;
 
-  final SupabaseClient supabase = UserService.instance.supabase;
+  final SupabaseClient supabase = Supabase.instance.client;
 
   Future<List<Map<String, dynamic>>> fetchActivities() async {
   try {
