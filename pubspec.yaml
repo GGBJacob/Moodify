@@ -37,6 +37,8 @@ dependencies:
   supabase_flutter: ^2.8.3
   shared_preferences: ^2.3.5
   uuid: ^4.5.1
+  pdf: ^3.11.1
+  flutter_pdfview: ^1.4.0
 
 dev_dependencies:
   flutter_test:
@@ -55,6 +57,8 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
 
+  assets:
+    - lib/src/assets/moodify_logo.jpg
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
