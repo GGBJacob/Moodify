@@ -14,7 +14,7 @@ class ReportService {
   Map<String,int> _activityCounts = {};
   int _noteCount = 0;
 
-  Future<void> prepareReport(DateTime startDate, DateTime endDate) async
+  Future<List<Map<String,dynamic>>> prepareReport(DateTime startDate, DateTime endDate) async
   {
     String user_id = await UserService.instance.user_id;
 
@@ -42,9 +42,11 @@ class ReportService {
     log("Moods: $_moodCounts");
     log("Emotions: $_emotionCounts");
     log("Activities: $_activityCounts");
+    return response;
     }catch(e)
     {
       log("Error while fetching user's notes: $e");
+      return [];
     }
   }
 
@@ -84,7 +86,7 @@ class ReportService {
     _moodCounts = sortCount(_moodCounts);
   }
 
-  pw.Chart _pieChart(pw.Text title, Map<String, int> dataset, int itemCount)
+  pw.Chart? _pieChart(pw.Text title, Map<String, int> dataset, int itemCount)
   {
     const chartColors = [
           PdfColors.blue300,
@@ -109,10 +111,15 @@ class ReportService {
     final dataExtracted = dataset.entries.take(itemCount).toList();
     int dataCount = 0, otherDataCount = 0;
     
-    // Count all emotions in selected period
+    // Count all values in selected period
     dataset.forEach((key, value){dataCount += value;});
     
-    // Count selected emotions to later obtain 'other' size
+    if (dataCount == 0)
+    {
+        return null;
+    }
+
+    // Count selected values to later obtain 'other' size
     for (var i in dataExtracted) {
       otherDataCount += i.value;
     }
@@ -146,9 +153,179 @@ class ReportService {
     );
   }
 
+  pw.Chart? _moodLineChart(DateTime startDate, DateTime endDate, List<Map<String,dynamic>> response)
+  {
+    // Generate dates
+    final List<DateTime> dateList = List.generate(endDate.difference(startDate).inDays, 
+    (index) => startDate.add(Duration(days: index))
+    );
+
+    // Extract dates and moods only
+    final Map<DateTime,int> moodList = {
+    for (var entry in response) DateTime.parse(entry['created_at'] as String).toLocal().copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0): entry['mood'] as int
+    };
+
+    // Assign colors to moods
+    final List<dynamic> moodLineColors = [
+      PdfColor.fromHex('FF840303'),
+      PdfColors.red300, 
+      PdfColors.orange300, 
+      PdfColor.fromHex('FF91AE00'), 
+      PdfColors.green];
+
+
+    // Draw chart
+    try{
+    final chart = pw.Chart(
+      grid: pw.CartesianGrid(
+        xAxis: pw.FixedAxis(
+          // Generate a list for xAxis
+          List.generate(dateList.length, (index)=> index.toDouble()),
+          divisions: true,
+          format: (index) {
+            if (index % 10 == 0 || index== dateList.length -1)
+            {
+            final date = dateList[index.toInt()];
+            return '${date.month}/${date.day}'; // Format date
+            }
+            else { return '';}
+          },
+          angle: 3.14/6
+        ), 
+        yAxis: pw.FixedAxis([0,1,2,3,4], divisions: true) // Assign fixed mood values to yAxis
+        ),
+        datasets: [
+        pw.LineDataSet(
+          data: List<pw.PointChartValue>.generate(
+            dateList.length, 
+            (index){
+              // Assign values to corresponding dates on the chart
+              final date = dateList[index];
+              final mood = moodList[date];
+              return pw.PointChartValue(index.toDouble(), mood?.toDouble() ?? -1.0); // Change to -1.0 in the future if possible
+            }
+          ),
+          drawSurface: true,
+          isCurved: true,
+          drawPoints: false,
+        )]
+      );
+      return chart;
+    }catch(e)
+    {
+      log("Exception: $e");
+      return null;
+    }
+  }
+
   Future<Uint8List> generateReport(DateTime startDate, DateTime endDate) async
   {
-    await prepareReport(startDate, endDate);
+    final response = await prepareReport(startDate, endDate);
+
+    /*final response = [
+  {
+    "id": 5,
+    "created_at": "2025-01-03T12:27:45.954151+00:00",
+    "mood": 4,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Angry"}},
+      {"emotions": {"emotion_name": "Calm"}},
+      {"emotions": {"emotion_name": "Sad"}}
+    ]
+  },
+  {
+    "id": 6,
+    "created_at": "2025-01-04T09:15:30.123456+00:00",
+    "mood": 3,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Happy"}},
+      {"emotions": {"emotion_name": "Excited"}}
+    ]
+  },
+  {
+    "id": 7,
+    "created_at": "2025-01-06T14:45:00.654321+00:00",
+    "mood": 2,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Calm"}},
+      {"emotions": {"emotion_name": "Neutral"}}
+    ]
+  },
+  {
+    "id": 8,
+    "created_at": "2025-01-10T18:30:10.789012+00:00",
+    "mood": 1,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Tired"}},
+      {"emotions": {"emotion_name": "Sad"}}
+    ]
+  },
+  {
+    "id": 9,
+    "created_at": "2025-01-12T11:30:10.789012+00:00",
+    "mood": 3,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Happy"}},
+      {"emotions": {"emotion_name": "Excited"}}
+    ]
+  },
+  {
+    "id": 10,
+    "created_at": "2025-01-15T08:30:10.789012+00:00",
+    "mood": 2,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Sad"}},
+      {"emotions": {"emotion_name": "Tired"}}
+    ]
+  },
+  {
+    "id": 11,
+    "created_at": "2025-01-17T16:30:10.789012+00:00",
+    "mood": 4,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Angry"}},
+      {"emotions": {"emotion_name": "Excited"}}
+    ]
+  },
+  {
+    "id": 12,
+    "created_at": "2025-01-20T14:30:10.789012+00:00",
+    "mood": 3,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Calm"}},
+      {"emotions": {"emotion_name": "Sad"}}
+    ]
+  },
+  {
+    "id": 13,
+    "created_at": "2025-01-22T10:30:10.789012+00:00",
+    "mood": 2,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Neutral"}},
+      {"emotions": {"emotion_name": "Tired"}}
+    ]
+  },
+  {
+    "id": 14,
+    "created_at": "2025-01-24T12:30:10.789012+00:00",
+    "mood": 1,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Sad"}},
+      {"emotions": {"emotion_name": "Tired"}}
+    ]
+  },
+  {
+    "id": 15,
+    "created_at": "2025-01-28T17:30:10.789012+00:00",
+    "mood": 4,
+    "notes_emotions": [
+      {"emotions": {"emotion_name": "Happy"}},
+      {"emotions": {"emotion_name": "Excited"}}
+    ]
+  }
+];
+    */
+    
 
     //final moodifyData = await rootBundle.load('assets/moodify_logo.jpg');
     //final moodifyImage = pw.MemoryImage(moodifyData.buffer.asUint8List());
@@ -192,26 +369,9 @@ class ReportService {
 
             pw.SizedBox(height: 60), 
 
-            pw.Row(
-              children: 
-                List<pw.Widget>.generate(
-                  moodPairs.length,
-                  (index)
-                  {
-                    final moodLabel = _moodCounts[index] ?? "Unknown";
-                    return pw.Column(
-                      children: [
-                        pw.Text(
-                          'Mood $index : ${_moodCounts[index] ?? 0}'
-                        )]
-                    );
-                  }
-                )
-                  /*Icon(
-              moodPairs[index][0],
-              size: 50,
-              color: _selectedMood == index ? moodPairs[index][1] : Colors.grey,
-            )*/
+            pw.SizedBox(
+              child: _moodLineChart(startDate, endDate, response),
+              height: chartSize
             ),
 
             pw.SizedBox(height: 60), 
@@ -219,6 +379,7 @@ class ReportService {
             pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.center, 
               children: [
+
                 pw.SizedBox(
                   width: chartSize,
                   height: chartSize,
