@@ -13,10 +13,18 @@ class ReportService {
   Map<int, int> _moodCounts = {};
   Map<String, int> _emotionCounts = {};
   Map<String, int> _activityCounts = {};
-  int _noteCount = 0;
+  int _noteCount = 0, _notesSkipped = 0;
+  DateTime _startDate=DateTime(2025,1,20), _endDate = DateTime.now();
 
-  Future<List<Map<String, dynamic>>> prepareReport(
-      DateTime startDate, DateTime endDate) async {
+
+  void init(DateTime startDate, DateTime endDate)
+  {
+    _startDate = startDate;
+    _endDate = endDate;
+  }
+
+
+  Future<List<Map<String, dynamic>>> prepareReport() async {
     String user_id = await UserService.instance.user_id;
 
     log("Generating report for $user_id");
@@ -32,8 +40,8 @@ class ReportService {
         notes_activities(activities(activity_name))
     ''')
           .eq('user_id', user_id)
-          .gte('created_at', startDate.toIso8601String())
-          .lte('created_at', endDate.toIso8601String());
+          .gte('created_at', _startDate.toIso8601String())
+          .lte('created_at', _endDate.toIso8601String());
 
       log("Response: $response");
 
@@ -51,6 +59,8 @@ class ReportService {
 
   void getCounts(List<Map<String, dynamic>> response) {
     _noteCount = response.length;
+    _notesSkipped = DateTime.now().difference(_startDate).inDays - _noteCount + 1;
+
 
     for (final item in response) {
       // Count moods
@@ -150,15 +160,15 @@ class ReportService {
     );
   }
 
-  pw.Chart? _moodLineChart(DateTime startDate, DateTime endDate,
-      List<Map<String, dynamic>> response) {
+  pw.Chart? _moodLineChart(List<Map<String, dynamic>> response) {
     // Generate dates
     final List<DateTime> dateList = List.generate(
-        endDate.difference(startDate).inDays,
-        (index) => startDate.add(Duration(days: index)));
+        _endDate.difference(_startDate).inDays + 1,
+        (index) => _startDate.add(Duration(days: index)));
 
     // Generate which dates to show
-    final int numberOfLabels = 10; // Must be >2
+    final int numberOfLabels =
+        10 < dateList.length ? 10 : dateList.length; // Must be >2
     final List<int> dateIndices = List.generate(numberOfLabels, (i) {
       return ((i * (dateList.length - 1)) / (numberOfLabels - 1)).round();
     });
@@ -174,7 +184,7 @@ class ReportService {
             microsecond: 0): entry['mood'] as int
     };
 
-    // Assign colors to moods
+    // Assign colors to moods - TODO
     final List<dynamic> moodLineColors = [
       PdfColor.fromHex('FF840303'),
       PdfColors.red300,
@@ -186,6 +196,16 @@ class ReportService {
     // Draw chart
     try {
       final chart = pw.Chart(
+          left: pw.Container(
+            alignment: pw.Alignment.topCenter,
+            margin: const pw.EdgeInsets.only(right: 5, top: 60),
+              child: pw.Transform.rotateBox(
+                  angle: 3.14 / 2,
+                  child: pw.Text('Mood',
+                      style: pw.TextStyle(
+                          font: pw.Font.timesBold(), fontSize: 20)))),
+          bottom: pw.Text('Note date',
+              style: pw.TextStyle(font: pw.Font.timesBold(), fontSize: 20)),
           grid: pw.CartesianGrid(
               xAxis: pw.FixedAxis(
                   // Generate a list for xAxis
@@ -208,9 +228,7 @@ class ReportService {
                 final date = dateList[index];
                 final mood = moodList[date];
                 return pw.PointChartValue(
-                    index.toDouble(),
-                    mood?.toDouble() ??
-                        -1.0);
+                    index.toDouble(), mood?.toDouble() ?? -1.0);
               }),
               drawSurface: true,
               isCurved: true,
@@ -224,8 +242,8 @@ class ReportService {
     }
   }
 
-  Future<Uint8List> generateReport(DateTime startDate, DateTime endDate) async {
-    final response = await prepareReport(startDate, endDate);
+  Future<Uint8List> generateReport() async {
+    final response = await prepareReport();
 
     /*final response = [
   {
@@ -353,10 +371,11 @@ class ReportService {
     final double chartSize = 240;
 
     final pdf = pw.Document();
-    pdf.addPage(pw.Page(
-      pageFormat: PdfPageFormat.a4,
-      margin: pw.EdgeInsets.all(0),
-      build: (context) => pw.Column(
+    pdf.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: pw.EdgeInsets.all(0),
+        build: (context) => pw.Column(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
           children: [
             // Report title
@@ -371,12 +390,14 @@ class ReportService {
                 )),
 
             pw.Text(
-              'Notes filled: $_noteCount',
+              'Notes filled: $_noteCount\nNotes skipped: $_notesSkipped',
               style: pw.TextStyle(font: pw.Font.times(), fontSize: 30),
             ),
 
+            
+
             pw.SizedBox(
-                child: _moodLineChart(startDate, endDate, response),
+                child: _moodLineChart(response),
                 height: chartSize,
                 width: chartSize * 2),
 
@@ -405,9 +426,11 @@ class ReportService {
 
   Future<void> saveReport() async {
     try {
-      final fileContent = await generateReport(DateTime(2024), DateTime(2026));
+      final fileContent =
+          await generateReport();
 
-      String? filePath = await FilePicker.platform.saveFile(
+      // TODO: This code works poorly, changes needed in the future (probably for path_provider)
+      await FilePicker.platform.saveFile(
           dialogTitle: "Choose Save Location",
           fileName: "report.pdf",
           bytes: Uint8List.fromList(fileContent));
