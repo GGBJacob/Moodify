@@ -14,49 +14,57 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage>
 {
   bool darkModeOn = false;
-  TextEditingController _startDateController = TextEditingController();
-  TextEditingController _endDateController = TextEditingController();
+  final TextEditingController _startDateController = TextEditingController();
+  final TextEditingController _endDateController = TextEditingController();
   //Data from date picker
-  DateTime? _startDate;
-  DateTime? _endDate;
+  DateTime _startDate = DateTime.now();
+  DateTime _endDate = DateTime.now();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: Colors.grey[200],
         body: Center(
-          child: CustomBlock(
-            child: Column(
-              children: [
-                SizedBox(height:20),
-                Text(style: TextStyle(fontSize: 45),'Settings'),
-                SizedBox(height:20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          child: Column(
+            children: [
+              SizedBox(height: MediaQuery.of(context).size.height *0.03),
+              Expanded( child:
+              CustomBlock(
+                child: Column(
                   children: [
-                    Icon(Icons.nightlight_outlined),
-                    Text(style: TextStyle(fontSize: 20),'Dark mode'),
-                    Switch(
-                      value: darkModeOn,
-                      onChanged: (value) {
-                        setState(() {
-                          darkModeOn = value;
-                        });
-                      },)
-                  ],),
-                SizedBox(height:20),
-                ElevatedButton(
-                style: ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20)),
-                onPressed: () {
-                  showDialog(
-                      context: context,
-                      builder: (context) => _popUp());
-                },
-                child: const Text('Export raport'),
+                    SizedBox(height:20),
+                    Text(style: TextStyle(fontSize: 45),'Settings'),
+                    SizedBox(height:20),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.nightlight_outlined),
+                        Text(style: TextStyle(fontSize: 20),'Dark mode'),
+                        Switch(
+                          value: darkModeOn,
+                          onChanged: (value) {
+                            setState(() {
+                              darkModeOn = value;
+                            });
+                          },)
+                      ],),
+                    SizedBox(height:20),
+                    ElevatedButton(
+                    style: ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20)),
+                    onPressed: () {
+                      showDialog(
+                          context: context,
+                          builder: (context) => _popUp());
+                    },
+                    child: const Text('Export raport'),
+                    )
+                  ],
                 )
-              ],
-            )
-          )
+              )
+              ),
+              
+              SizedBox(height: MediaQuery.of(context).size.height *0.03)
+            ])
     )
     );
   }
@@ -65,8 +73,8 @@ class _SettingsPageState extends State<SettingsPage>
     return AlertDialog(
       title: Text('Export raport'),
       content: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          SizedBox(height:20),
           Text('Choose start and end dates'),
           SizedBox(height:20),
           _datePicker(true),
@@ -79,16 +87,92 @@ class _SettingsPageState extends State<SettingsPage>
             onPressed: () => Navigator.pop(context),
             child: Text('Cancel')),
         TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () => _validateDialog(context),
             child: Text('Export'))
       ],
     );
+  }
+
+  void _validateDialog(BuildContext context) async
+  {
+    if (_endDate.difference(_startDate).inDays <= 0)
+    {
+      // Invalid period entered
+      return;
+    }
+
+    Navigator.pop(context);
+
+    //Snack bar
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        duration: Duration(days: 1),
+        content: Row(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(width: 20),
+            Text('Generating report...'),
+          ],
+        ))
+    );
+
+    // Generate report
+    await Future.delayed(Duration(seconds: 3));
+    
+    _startDateController.text = 'START DATE';
+    _endDateController.text = 'END DATE';
+
+
+    //Success
+
+    ScaffoldMessenger.of(context).clearSnackBars();
+
+    bool success = true;
+    if(success)
+    {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            children: [
+              Icon(Icons.close, color: Colors.white),
+              SizedBox(width: 20),
+              Text('Report generation failed!'),
+            ],
+          ),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 2)
+         )
+      );
+      return;
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 20),
+              Text('Report generated successfully!'),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2)
+         )
+     );
   }
 
   Widget _datePicker(bool start) {
     return   TextField(
       controller: start?_startDateController:_endDateController,
       decoration: InputDecoration(
+        //Future date error notification
+        /*errorText: 'Invalid date',
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.redAccent)
+        ),*/
         labelText: start?'START DATE':'END DATE',
         filled: true,
         prefixIcon: Icon(Icons.calendar_today_outlined),
@@ -112,18 +196,19 @@ class _SettingsPageState extends State<SettingsPage>
         firstDate: DateTime(2000),
         lastDate: DateTime(2100)
     );
-    if(_picked != null){
-      if (start) {
-        _startDate = _picked;
-        setState(() {
-          _startDateController.text = _picked.toString().split(" ")[0];
-        });
-      } else {
-        _endDate = _picked;
-        setState(() {
-          _endDateController.text = _picked.toString().split(" ")[0];
-        });
-      }
+    if(_picked == null){
+      return;
+    }
+    if (start) {
+      _startDate = _picked;
+      setState(() {
+        _startDateController.text = _picked.toString().split(" ")[0];
+      });
+    } else {
+      _endDate = _picked;
+      setState(() {
+        _endDateController.text = _picked.toString().split(" ")[0];
+      });
 
     }
   }
