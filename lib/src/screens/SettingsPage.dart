@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 import '../components/CustomBlock.dart';
@@ -19,6 +21,10 @@ class _SettingsPageState extends State<SettingsPage>
   //Data from date picker
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now();
+
+  bool _startDateError = false;
+  bool _endDateError = false;
+
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +90,7 @@ class _SettingsPageState extends State<SettingsPage>
       ),
       actions: [
         TextButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {Navigator.pop(context); _resetDialog();},
             child: Text('Cancel')),
         TextButton(
             onPressed: () => _validateDialog(context),
@@ -93,16 +99,35 @@ class _SettingsPageState extends State<SettingsPage>
     );
   }
 
-  void _validateDialog(BuildContext context) async
+  void _resetDialog()
+  {
+    _startDateError = false;
+    _endDateError = false;
+    _startDateController.text = 'START DATE';
+    _endDateController.text = 'END DATE';
+  }
+
+
+  void _validateDialog(BuildContext context)
   {
     if (_endDate.difference(_startDate).inDays <= 0)
     {
+      log("Invalid date");
       // Invalid period entered
+      setState(() { // TODO: For some weird reason, this doesn't refresh the dialog
+        _endDateError = true;
+        _startDateError = true;
+      });
       return;
     }
 
     Navigator.pop(context);
+    _exportRaport();
+    _resetDialog();
+  }
 
+  void _exportRaport() async
+  {
     //Snack bar
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -119,10 +144,6 @@ class _SettingsPageState extends State<SettingsPage>
 
     // Generate report
     await Future.delayed(Duration(seconds: 3));
-    
-    _startDateController.text = 'START DATE';
-    _endDateController.text = 'END DATE';
-
 
     //Success
 
@@ -168,11 +189,10 @@ class _SettingsPageState extends State<SettingsPage>
     return   TextField(
       controller: start?_startDateController:_endDateController,
       decoration: InputDecoration(
-        //Future date error notification
-        /*errorText: 'Invalid date',
+        errorText: start ? (_startDateError ? 'Invalid date' : null) : (_endDateError ? 'Invalid date' : null),
         errorBorder: OutlineInputBorder(
           borderSide: BorderSide(color: Colors.redAccent)
-        ),*/
+        ),
         labelText: start?'START DATE':'END DATE',
         filled: true,
         prefixIcon: Icon(Icons.calendar_today_outlined),
