@@ -19,8 +19,8 @@ class ReportService {
 
   void init(DateTime startDate, DateTime endDate)
   {
-    _startDate = startDate;
-    _endDate = endDate;
+    _startDate = DateTime(startDate.year, startDate.month, startDate.day);
+    _endDate = DateTime(endDate.year, endDate.month, endDate.day);
   }
 
 
@@ -424,19 +424,30 @@ class ReportService {
     return pdf.save();
   }
 
-  Future<void> saveReport() async {
+  Future<int> saveReport() async {
     try {
       final fileContent =
           await generateReport();
 
       // TODO: This code works poorly, changes needed in the future (probably for path_provider)
-      await FilePicker.platform.saveFile(
+      final response = await FilePicker.platform.saveFile(
           dialogTitle: "Choose Save Location",
           fileName: "report.pdf",
           bytes: Uint8List.fromList(fileContent));
+
+      log("Response: $response");
+
+      if (response == null)
+      {
+        return -1;
+      }
+
+      return 0;
+
     } catch (e, stacktrace) {
       log("Error saving file: $e");
       log('$stacktrace');
+      return -1;
     }
   }
 }

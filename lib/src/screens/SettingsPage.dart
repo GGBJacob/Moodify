@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:moodify/src/services/ReportService.dart';
 
 import '../components/CustomBlock.dart';
 
@@ -143,16 +144,36 @@ class _SettingsPageState extends State<SettingsPage>
     );
 
     // Generate report
-    await Future.delayed(Duration(seconds: 3));
+    final ReportService reportService = ReportService();
+    reportService.init(_startDate, _endDate);
 
-    //Success
+    // Check result
+    final bool success = await reportService.saveReport() == 0;
 
     ScaffoldMessenger.of(context).clearSnackBars();
 
-    bool success = true;
+    // Display success snack bar
     if(success)
     {
       ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            children: [
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 20),
+              Text('Report generated successfully!'),
+            ],
+          ),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2)
+         )
+      );
+      return;
+    }
+
+    // Display success task bar
+    ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           behavior: SnackBarBehavior.floating,
           content: Row(
@@ -166,23 +187,6 @@ class _SettingsPageState extends State<SettingsPage>
           duration: Duration(seconds: 2)
          )
       );
-      return;
-    }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Row(
-            children: [
-              Icon(Icons.check_circle, color: Colors.white),
-              SizedBox(width: 20),
-              Text('Report generated successfully!'),
-            ],
-          ),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2)
-         )
-     );
   }
 
   Widget _datePicker(bool start) {
