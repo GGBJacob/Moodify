@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
 
@@ -16,7 +15,7 @@ class _HomePageState extends State<HomePage>
 {
 
   int _goodMoodCount = 0, _midMoodCount = 0, _badMoodCount = 0;
-  int _count = 0;
+  final int _count = 0;
 
   // Page building method
   @override

@@ -49,23 +49,23 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
   Future<void> saveNote(int mood, List<int> emotions, List<int> activities, String note) async
   {
     // Insert to notes table
-    final notes_response = await supabase
+    final notesResponse = await supabase
     .from('notes')
     .insert([
       { 'user_id': UserService.instance.user_id, 'mood': mood, 'note':note },
     ])
     .select();
 
-    int note_id = notes_response[0]['id'];
+    int noteId = notesResponse[0]['id'];
 
-    print("Added note $note_id!");
+    print("Added note $noteId!");
 
     // Insert to notes_emotions
     await supabase
     .from('notes_emotions')
     .insert(emotions.map((emotion)
     {
-      return {'emotion_id': emotion, 'note_id': note_id};
+      return {'emotion_id': emotion, 'note_id': noteId};
     }).toList());
 
 
@@ -74,7 +74,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       .from('notes_activities')
       .insert(activities.map((activity)
       {
-        return {'activity_id': activity, 'note_id': note_id};
+        return {'activity_id': activity, 'note_id': noteId};
       }).toList());
 
     }

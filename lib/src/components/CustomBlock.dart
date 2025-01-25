@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 class CustomBlock extends StatelessWidget {
   final Widget child;
 
-  const CustomBlock({required this.child, Key? key}) : super(key: key);
+  const CustomBlock({required this.child, super.key});
 
   @override
   Widget build(BuildContext context) {
