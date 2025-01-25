@@ -69,7 +69,7 @@ class _HomePageState extends State<HomePage>
         child: Column(
             children: [
               Text(style: TextStyle(fontSize: 30),'Emotions:'),
-              Text(style: TextStyle(fontSize: 20),'Happy, exited, tired'),
+              Text(style: TextStyle(fontSize: 20),'Happy, excited, tired'),
             ]
         )
     );

@@ -173,7 +173,7 @@ Future<List<Pair<DateTime, List<double>>>> fetchScores(String user_uuid) async {
 }
 }
 
-List<double> calculateRiskValues(List<Pair<DateTime, double>> data,
+/*List<double> calculateRiskValues(List<Pair<DateTime, double>> data,
     {int t1 = 6}) {
   int t2 = data.length;
   int time_window = t1;
@@ -294,3 +294,4 @@ List<double> normalise(List<double> data, double mean, double sigma) {
   }
   return normalisedData;
 }
+*/
