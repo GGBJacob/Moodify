@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
+import '../services/TestService.dart';
 
 class TestPage extends StatefulWidget {
   const TestPage({super.key});
@@ -49,6 +50,53 @@ class _TestPageState extends State<TestPage> {
       if (answer != -1) score += answer;
     }
     return score;
+  }
+
+  void validateTest(BuildContext mainContext) {
+    if (selectedAnswers.contains(-1)) {
+      // If any answer is -1, show an error message
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Incomplete Test'),
+            content: const Text(
+                'Please answer all the questions before submitting.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      int points = calculateScore();
+      String depressionIntensity = returnDepressionIntensity(points);
+      TestService.instance.saveTest(points, selectedAnswers);
+      showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: const Text('Test completed'),
+            content: Text(
+                'Your result is $points points, what may be sign of ${depressionIntensity} depression.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  Navigator.pop(mainContext);
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   String returnDepressionIntensity(int score)
@@ -128,47 +176,7 @@ class _TestPageState extends State<TestPage> {
             const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {
-                if (selectedAnswers.contains(-1)) {
-                  // If any answer is -1, show an error message
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text('Incomplete Test'),
-                        content: const Text(
-                            'Please answer all the questions before submitting.'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                } else {
-                  int score = calculateScore();
-                  String depressionIntensity = returnDepressionIntensity(score);
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: const Text('Test completed'),
-                        content: Text('Your result is $score points, what may be sign of ${depressionIntensity} depression.'),
-                        actions: <Widget>[
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text('OK'),
-                          ),
-                        ],
-                      );
-                    },
-                  );
-                }
+                validateTest(context);
               },
               child: const Text('Submit Test'),
             ),

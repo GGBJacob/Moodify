@@ -43,28 +43,37 @@ class _MorePageState extends State<MorePage> {
   }
 
   Widget _testButton(context) {
-    return ElevatedButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const TestPage()),
-          );
-        },
-        child: const Text(
-          "PHQ-9 test",
-          style: TextStyle(
-            fontSize: 18, 
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        style: ElevatedButton.styleFrom(
-          shadowColor: Colors.transparent, 
-          padding: EdgeInsets.all(15.0),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-        ),
-      );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+      child: Row (
+        children: [ //TODO: Make a widget taking children and expanding them in a list
+          Expanded(
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const TestPage()),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                shadowColor: Colors.transparent, 
+                padding: EdgeInsets.all(15.0),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+              ),
+              child: const Text(
+                "PHQ-9 test",
+                style: TextStyle(
+                  fontSize: 18, 
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              )
+            )
+        ]
+      )
+    );
   }
 
 
