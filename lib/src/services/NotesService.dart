@@ -1,5 +1,6 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'UserService.dart';
+import 'package:moodify/src/services/MentalService.dart';
 
 class NotesService {
 
@@ -10,6 +11,8 @@ class NotesService {
   static NotesService get instance => _instance;
 
   final SupabaseClient supabase = UserService.instance.supabase;
+
+  final MentalService ms = MentalService();
 
   Future<List<Map<String, dynamic>>> fetchActivities() async {
   try {
@@ -48,11 +51,12 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
 
   Future<void> saveNote(int mood, List<int> emotions, List<int> activities, String note) async
   {
+    final List<double> scores = await ms.assess(note);
     // Insert to notes table
     final notes_response = await supabase
     .from('notes')
     .insert([
-      { 'user_id': UserService.instance.user_id, 'mood': mood, 'note':note },
+      { 'user_id': UserService.instance.user_id, 'mood': mood, 'note':note, 'scores': scores },
     ])
     .select();
 
