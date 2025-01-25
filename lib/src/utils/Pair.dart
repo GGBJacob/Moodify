@@ -1,3 +1,4 @@
+
 class Pair<T1, T2> {
   T1 first;
   T2 second;
@@ -15,7 +16,7 @@ class Pair<T1, T2> {
   void setSecond(T2 value) {
     second = value;
   }
-
+  
   @override
   String toString() => 'Pair($first, $second)';
 }

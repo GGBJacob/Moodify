@@ -4,8 +4,11 @@ import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'UserService.dart';
-
+import 'MentalService.dart';
 import '../utils/Pair.dart';
+import 'package:flutter/services.dart' show rootBundle;
+import 'dart:convert';
+import 'package:deepcopy/deepcopy.dart';
 
 double abs(double number)
 {
@@ -25,16 +28,19 @@ class CrisisPredictionService
 
   final SupabaseClient supabase = UserService.instance.supabase;
   
-  Future<double> calculateDailyRisk(String user_uuid) async
+  Future<List<Pair<String, double>>> calculateDailyRisks(String user_uuid) async
   {
     List<Pair<DateTime, List<double>>> moods = await fetchMoods(user_uuid);
     List<Pair<DateTime, List<double>>> points = await fetchPoints(user_uuid);
-    List<Pair<DateTime, List<double>>> gathered_scores = connect(moods, points);
-    List<Pair<DateTime, double>> average_scores = calculate_averages_scores(gathered_scores);
-    List<double> risks = calculateRiskValues(average_scores);
-    return risks.last;
+    List<dynamic> gathered_moods_points = connect(moods, points);
+    List<Pair<DateTime, double>> average_moods_points = calculate_averages_scores(gathered_moods_points);
+    List<Pair<DateTime, List<double>>> scores = await fetchScores(user_uuid);
+    scores = normaliseScores(scores);
+    List<String> embedding_headers = await loadEmbeddingHeaders();
+    List<List<Pair<DateTime, double>>> average_scores_for_headers = calculateAverageScoresForHeaders(scores, average_moods_points, embedding_headers.length);
+    return calculateRisksForHeaders(average_scores_for_headers, embedding_headers);
   }
-  List<Pair<DateTime, double>> calculate_averages_scores(List<Pair<DateTime, List<double>>> list)
+  List<Pair<DateTime, double>> calculate_averages_scores(List<dynamic> list)
   {
     List<Pair<DateTime, double>> average_scores = [];
     for(Pair<DateTime, List<double>> day in list)
@@ -48,9 +54,71 @@ class CrisisPredictionService
     }
     return average_scores;
   }
+List<List<Pair<DateTime, double>>> calculateAverageScoresForHeaders(List<Pair<DateTime, List<double>>> scores, List<Pair<DateTime, double>> average_moods_points, int number_of_embeddings)
+ {
+  List<List<Pair<DateTime, double>>> result = [];
+  for (int i=0; i< number_of_embeddings;i++)
+  {
+    List<Pair<DateTime, List<double>>> average_moods_points_list = [];
+    for (Pair<DateTime, double> pair in average_moods_points)
+    {
+      average_moods_points_list.add(Pair(pair.first, [pair.second]));
+    }
+    List<Pair<DateTime, List<double>>> scores_of_embedding = [];
+    for(int j=0; j < scores.length; j++)
+    {
+      Pair<DateTime, List<double>> pair = scores[j];
+      Pair<DateTime, List<double>> score;
+      if (pair.second == Null)
+      {
+        score = Pair(pair.first, [average_moods_points[j].second]);
+      }
+      else
+      {
+        score = Pair(pair.first, [pair.second[i]]);
+      }
+      scores_of_embedding.add(score);
+    }
+    List<dynamic> gathered_score_for_header = connect(scores_of_embedding, average_moods_points_list);
+    List<Pair<DateTime, double>> average_score_for_header = calculate_averages_scores(gathered_score_for_header);
+    result.add(average_score_for_header);
+  }
+  return result;
+ }
+ List<Pair<String, double>> calculateRisksForHeaders(List<List<Pair<DateTime, double>>> scores, List<String> headers)
+ {
+  List<Pair<String, double>> result = [];
+  for (int i = 0; i< headers.length;i++)
+  {
+    List<double> risks = calculateRiskValues(scores[i]);
+    result.add(Pair(headers[i], risks.last));
+  }
+  return result;
+ }
+Future<List<String>> loadEmbeddingHeaders() async {
+  final fileContent = await rootBundle.loadString('assets/a.txt'); // Await the asynchronous operation
+  final lines = fileContent.split('\n').map((line) => line.trim()).toList();
+  final List<dynamic> decodedJson = jsonDecode(lines[0]); // Decode as List<dynamic>
+  return decodedJson.cast<String>().toList(); // Explicitly cast to List<String>
+}
 
-List<Pair<DateTime, List<double>>> connect(List<Pair<DateTime, List<double>>> list1, List<Pair<DateTime, List<double>>> list2)
+
+List<dynamic> connect(List<Pair<DateTime, List<double>>> l1, List<Pair<DateTime, List<double>>> l2)
 {
+    List list1 = l1.deepcopy();
+    List list2 = l2.deepcopy();
+    if (list1.isEmpty)
+    {
+      if(list2.isEmpty)
+      {
+        return [];
+      }
+      return list2;
+    }
+    if (list2.isEmpty)
+    {
+      return list1;
+    }
     List<Pair<DateTime, List<double>>> connected =[];
     int list1_index = 0;
     int list2_index = 0;
@@ -157,9 +225,11 @@ Future<List<Pair<DateTime, List<double>>>> fetchScores(String user_uuid) async {
   try {
     final response = await supabase.from('notes').select('*').eq('user_id', user_uuid);
     print("success");
-    final List<Pair<DateTime, List<double>>> moodList = response.map((element) {
+    final List<Pair<DateTime, List<double>>> moodList = response.map<Pair<DateTime, List<double>>>((element) {
       final DateTime createdAt = DateTime.parse(element['created_at'] as String);
-      final List<double> points = (element['scores'] as List<double>);
+      final List<double> points = (element['scores'] as List<dynamic>)
+          .map((score) => score as double)
+          .toList();
 
       return Pair(createdAt, points);
     }).toList();
@@ -171,9 +241,23 @@ Future<List<Pair<DateTime, List<double>>>> fetchScores(String user_uuid) async {
     return [];
   }
 }
+List<Pair<DateTime, List<double>>> normaliseScores(List<Pair<DateTime, List<double>>> scores)
+{
+  for (int j=0;j < scores.length;j++ )
+  {
+    Pair<DateTime, List<double>> score = scores[j];
+    for (int i = 0; i < score.second.length; i++)
+    {
+      double value = score.second[i];
+      score.second[i] = (max(min(0.5, value), 0.1)-0.1)*2.5;
+    }
+    scores[j] = score;
+  }
+  return scores;
+}
 }
 
-/*List<double> calculateRiskValues(List<Pair<DateTime, double>> data,
+List<double> calculateRiskValues(List<Pair<DateTime, double>> data,
     {int t1 = 6}) {
   int t2 = data.length;
   int time_window = t1;
@@ -294,4 +378,3 @@ List<double> normalise(List<double> data, double mean, double sigma) {
   }
   return normalisedData;
 }
-*/
