@@ -92,7 +92,7 @@ class _TestPageState extends State<TestPage> {
                   });
                 },
               );
-            }).toList(),
+            }),
           ],
         ),
       ),
@@ -181,15 +181,18 @@ class _TestPageState extends State<TestPage> {
 
 Widget _MainQuestionText(String mainQuestion)
 {
-    return CustomBlock(
-      child: Text(
-        mainQuestion,
-        style: TextStyle(
-          fontSize: 20, 
-          fontWeight: FontWeight.bold, 
-          color: Colors.black, 
-        ),
-      )
-    )
-  ;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8.0), // Dodanie odstępu między blokami
+      child:
+        CustomBlock(
+          child: Text(
+            mainQuestion,
+            style: TextStyle(
+              fontSize: 20, 
+              fontWeight: FontWeight.bold, 
+              color: Colors.black, 
+            ),
+          )
+        )
+    );
   }

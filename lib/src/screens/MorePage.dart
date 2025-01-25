@@ -18,7 +18,10 @@ class _MorePageState extends State<MorePage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start, // spaces all children evenly in vertical axis
           children: [
-            _blockWithTitleAndButtons(context)
+            SizedBox(height: MediaQuery.of(context).padding.top),
+            Expanded(
+              child: _blockWithTitleAndButtons(context)),
+            SizedBox(height: MediaQuery.of(context).size.height *0.03)
           ],
         ),
       ),
