@@ -153,7 +153,24 @@ Future<List<Pair<DateTime, List<double>>>> fetchPoints(String user_uuid) async {
     return [];
   }
 }
+Future<List<Pair<DateTime, List<double>>>> fetchScores(String user_uuid) async {
+  try {
+    final response = await supabase.from('notes').select('*').eq('user_id', user_uuid);
+    print("success");
+    final List<Pair<DateTime, List<double>>> moodList = response.map((element) {
+      final DateTime createdAt = DateTime.parse(element['created_at'] as String);
+      final List<double> points = (element['scores'] as List<double>);
 
+      return Pair(createdAt, points);
+    }).toList();
+    moodList.sort((a, b) => a.first.compareTo(b.first));
+
+    return moodList;
+  } catch (e) {
+    print("Error reading activities: $e");
+    return [];
+  }
+}
 }
 
 List<double> calculateRiskValues(List<Pair<DateTime, double>> data,
