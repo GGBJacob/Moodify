@@ -14,10 +14,15 @@ class UserService {
 
   final SupabaseClient supabase  = Supabase.instance.client;
 
-  String? user_id;
+  String? _user_id;
+
+  Future<String> get user_id async {
+    _user_id ??= await getOrGenerateUserId();
+    return _user_id!;
+  }
 
   void _initialize() async {
-    user_id = await getOrGenerateUserId();
+    _user_id = await getOrGenerateUserId();
   }
 
   Future<String> getOrGenerateUserId() async {
@@ -33,7 +38,7 @@ class UserService {
     }
 
     // Rerurn and save UUID
-    user_id = storedUserId;
+    _user_id = storedUserId;
     return storedUserId;
   }
 
