@@ -37,7 +37,7 @@ class CrisisPredictionService
     List<Pair<DateTime, List<double>>> scores = await fetchScores(user_uuid);
     scores = normaliseScores(scores);
     List<String> embedding_headers = await loadEmbeddingHeaders();
-    List<List<Pair<DateTime, double>>> average_scores_for_headers = calculateAverageScoresForHeaders(scores, average_moods_points, embedding_headers.length);
+    List<List<Pair<DateTime, double>>> average_scores_for_headers = calculateAverageScoresForHeaders(scores, average_moods_points, embedding_headers.length, 2);
     return calculateRisksForHeaders(average_scores_for_headers, embedding_headers);
   }
   List<Pair<DateTime, double>> calculate_averages_scores(List<dynamic> list)
@@ -54,7 +54,7 @@ class CrisisPredictionService
     }
     return average_scores;
   }
-List<List<Pair<DateTime, double>>> calculateAverageScoresForHeaders(List<Pair<DateTime, List<double>>> scores, List<Pair<DateTime, double>> average_moods_points, int number_of_embeddings)
+List<List<Pair<DateTime, double>>> calculateAverageScoresForHeaders(List<Pair<DateTime, List<double>>> scores, List<Pair<DateTime, double>> average_moods_points, int number_of_embeddings, int weight)
  {
   List<List<Pair<DateTime, double>>> result = [];
   for (int i=0; i< number_of_embeddings;i++)
@@ -75,11 +75,16 @@ List<List<Pair<DateTime, double>>> calculateAverageScoresForHeaders(List<Pair<Da
       }
       else
       {
-        score = Pair(pair.first, [pair.second[i]]);
+        score = Pair(pair.first, []);
+        for (int k =0; k<weight;k++)
+        {
+          score.second.add(pair.second[i]);
+        }
       }
       scores_of_embedding.add(score);
     }
     List<dynamic> gathered_score_for_header = connect(scores_of_embedding, average_moods_points_list);
+    //gathered_score_for_header = connect(scores_of_embedding, gathered_score_for_header);
     List<Pair<DateTime, double>> average_score_for_header = calculate_averages_scores(gathered_score_for_header);
     result.add(average_score_for_header);
   }
@@ -103,7 +108,7 @@ Future<List<String>> loadEmbeddingHeaders() async {
 }
 
 
-List<dynamic> connect(List<Pair<DateTime, List<double>>> l1, List<Pair<DateTime, List<double>>> l2)
+List<dynamic> connect(List<dynamic> l1, List<dynamic> l2)
 {
     List list1 = l1.deepcopy();
     List list2 = l2.deepcopy();
