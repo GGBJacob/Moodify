@@ -1,6 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
+import '../services/TrendAnalysis.dart';
+import '../services/UserService.dart';
+import '../utils/Pair.dart';
 
 //TODO: Create page
 
@@ -20,24 +23,29 @@ class _HomePageState extends State<HomePage>
 
   // Page building method
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[200],
-      body: Center(
+ Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.grey[200],
+    body: Scrollbar( 
+      thumbVisibility: false, 
+      child: SingleChildScrollView( 
         child:
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,  //spaces all children evenly in vertical axis
-
+          Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _firstBlock(),
               _secondBlock(),
               _thirdBlock(),
-              _fourthBlock()
+              _fourthBlock(),
+              _fifthBlock(),
             ],
-          )
+          ),
+        ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _firstBlock()
   {
@@ -86,6 +94,46 @@ class _HomePageState extends State<HomePage>
         )
     );
   }
+
+  // W innym pliku, gdzie chcesz wywołać funkcję
+
+Widget _fifthBlock() {
+  return FutureBuilder<List<Pair<String, double>>>(
+    //UserService.instance.user_id!
+    future: CrisisPredictionService.instance.calculateDailyRisks('c61f53e4-4783-4706-bbd1-891c876e414a'),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      } else if (snapshot.hasError) {
+        return Center(child: Text("Error: ${snapshot.error}"));
+      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        return Center(child: Text("No data available"));
+      } else {
+  List<Pair<String, double>> risks = snapshot.data!;
+  
+        return CustomBlock(
+          child: DataTable(
+            columns: const [
+              DataColumn(label: Text("Health Metric")),
+              DataColumn(label: Text("Risk Value")),
+            ],
+            rows: List<DataRow>.generate(
+              risks.length-1, //-1 to not display last row - health
+              (int index) => DataRow(
+                cells: [
+                  DataCell(Text(risks[index].getFirst())),
+                  DataCell(Text(risks[index].getSecond().toString())),
+                ]
+              ),
+            ),
+          ),
+        );
+      }
+    },
+  );
+}
+
+
 
   Widget _facesRow()
   {
