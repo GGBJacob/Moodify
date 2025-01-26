@@ -77,6 +77,14 @@ class _NewNotePageState extends State<NewNotePage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
+      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.pop(context),
+        child: Icon(Icons.arrow_back),
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.white,
+        heroTag: "return", 
+      ),
       body: Center(
         child: SingleChildScrollView(
           child:  Column(
