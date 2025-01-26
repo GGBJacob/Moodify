@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:moodify/src/services/TestService.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -16,7 +16,7 @@ class ReportService {
 
   void init(DateTime startDate, DateTime endDate) {
     _startDate = DateTime(startDate.year, startDate.month, startDate.day);
-    _endDate = DateTime(endDate.year, endDate.month, endDate.day);
+    _endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59);
   }
 
   Future<List<Map<String, dynamic>>> _fetchNotes() async {
@@ -90,7 +90,7 @@ class ReportService {
     _moodCounts = sortCount(_moodCounts);
   }
 
-  pw.Chart? _pieChart(pw.Text title, Map<String, int> dataset, int itemCount) {
+  pw.Chart? _pieChart(pw.Widget title, Map<String, int> dataset, int itemCount) {
     const chartColors = [
       PdfColors.blue300,
       PdfColors.green300,
@@ -179,9 +179,19 @@ class ReportService {
             microsecond: 0): entry['mood'] as int
     };
 
+    final pw.Widget chartTitle = pw.Center(
+      child: pw.Container(
+        child: pw.Text(
+          "Selected mood chart",
+          style: pw.TextStyle(font: pw.Font.times(), fontSize: 30)
+        )
+      )
+    );
+
     // Draw chart
     try {
       final chart = pw.Chart(
+        title: chartTitle,
           left: pw.Container(
               alignment: pw.Alignment.topCenter,
               margin: const pw.EdgeInsets.only(right: 5, top: 60),
@@ -189,9 +199,9 @@ class ReportService {
                   angle: 3.14 / 2,
                   child: pw.Text('Mood',
                       style: pw.TextStyle(
-                          font: pw.Font.timesBold(), fontSize: 20)))),
+                          font: pw.Font.times(), fontSize: 20)))),
           bottom: pw.Text('Note date',
-              style: pw.TextStyle(font: pw.Font.timesBold(), fontSize: 20)),
+              style: pw.TextStyle(font: pw.Font.times(), fontSize: 20)),
           grid: pw.CartesianGrid(
               xAxis: pw.FixedAxis(
                   // Generate a list for xAxis
@@ -236,7 +246,8 @@ class ReportService {
         .from('phq-9_results')
         .select('''
         created_at,
-        points
+        points,
+        answers
         ''')
         .eq('user_id', user_id)
         .gte('created_at', _startDate.toIso8601String())
@@ -263,7 +274,7 @@ class ReportService {
       return pw.TableHelper.fromTextArray(
         
         headerHeight: 25,
-        cellHeight: 100,
+        cellHeight: 35,
 
         headers: List<String>.generate(
           tableHeaders.length,
@@ -326,14 +337,20 @@ class ReportService {
   pw.Page _firstPage(List<Map<String,dynamic>> notesResponse)
   {
     // Emotion pie chart title
-    final pw.Text emotionChartTitle = pw.Text("Selected emotions",
-        style: pw.TextStyle(font: pw.Font.times(), fontSize: 30));
+    final pw.Widget emotionChartTitle = pw.Container(
+      margin: pw.EdgeInsets.only(bottom: 10),
+      child: pw.Text(
+        "Selected emotions",
+        style: pw.TextStyle(font: pw.Font.times(), fontSize: 30)));
 
     // Activity pie chart title
-    final pw.Text activityChartTitle = pw.Text("Selected activities",
-        style: pw.TextStyle(font: pw.Font.times(), fontSize: 30));
+    final pw.Widget activityChartTitle = pw.Container(
+      margin: pw.EdgeInsets.only(bottom: 10),
+      child: pw.Text(
+        "Selected activities",
+        style: pw.TextStyle(font: pw.Font.times(), fontSize: 30)));
 
-    final double chartSize = 240;
+    const double chartSize = 240;
     return pw.Page(
       pageFormat: PdfPageFormat.a4,
       margin: pw.EdgeInsets.all(0),
@@ -347,7 +364,7 @@ class ReportService {
                 'Note report',
                 style: pw.TextStyle(
                   font: pw.Font.timesBold(),
-                  fontSize: 60,
+                  fontSize: 50,
                 ),
               )),
 
@@ -376,6 +393,7 @@ class ReportService {
               ),
             ],
           ),
+          pw.SizedBox(height: 10)
         ],
       ),
     );
@@ -384,10 +402,95 @@ class ReportService {
   pw.MultiPage _testResultPages(List<Map<String,dynamic>> response)
   {
     return pw.MultiPage(
-      build:(context) => [
-        _testResultsTable(response)
-      ],
+      build:(context) {
+        List<pw.Widget> content = [
+          pw.Center(child: pw.Container(
+            margin: pw.EdgeInsets.only(bottom: 15),
+            child: pw.Text(
+            'PHQ-9 summary',
+            style: pw.TextStyle(font: pw.Font.timesBold(), fontSize: 50),
+            
+          ))),
+          _testResultsTable(response),
+          pw.SizedBox(height: 30),
+          _testResultsChart(response)
+        ];
+
+        return content;
+      }
     );
+  }
+
+  pw.Widget _testResultsChart(List<Map<String, dynamic>> response) {
+    const double chartSize = 300;
+
+    final processedResponse = response.map((entry) {
+      final bits = entry['answers'] as String;
+      return TestService.instance.convertBitsToAnswers(bits);
+    }).toList();
+
+    final averageAnswerScore = List<double>.generate(
+        processedResponse[0].length,
+        (col) =>
+            processedResponse.map((row) => row[col]).reduce((a, b) => a + b) /
+            processedResponse.length);
+
+    final pw.Widget chartTitle = pw.Center(
+      child: pw.Container(
+        margin: pw.EdgeInsets.only(bottom: 10),
+        child: pw.Text(
+          'Average question score',
+          style: pw.TextStyle(font: pw.Font.times(), fontSize: 30)
+        )
+      )
+    );
+
+    return pw.Center(
+        child: pw.SizedBox(
+            height: chartSize,
+            child: pw.Chart(
+              title: chartTitle,
+              left: pw.Container(
+                alignment: pw.Alignment.topCenter,
+                margin: const pw.EdgeInsets.only(right: 5, top: 10),
+                child: pw.Transform.rotateBox(
+                  angle: 3.14 / 2,
+                  child: pw.Text('Average score'),
+                ),
+              ),
+              bottom: pw.Container(
+                  alignment: pw.Alignment.center,
+                  margin: const pw.EdgeInsets.only(top: 5),
+                  child: pw.Text('Question number')),
+              grid: pw.CartesianGrid(
+                xAxis: pw.FixedAxis.fromStrings(
+                  List<String>.generate(9, (index) => (index + 1).toString()),
+                  marginStart: 30,
+                  marginEnd: 30,
+                  ticks: true,
+                ),
+                yAxis: pw.FixedAxis(
+                  [0, 1, 2, 3],
+                  divisions: true,
+                ),
+              ),
+              datasets: [
+                pw.BarDataSet(
+                  color: PdfColors.blue100,
+                  width: 15,
+                  borderColor: PdfColors.cyan,
+                  data: List<pw.PointChartValue>.generate(
+                    averageAnswerScore.length,
+                    (i) {
+                      final v = averageAnswerScore[i] as num;
+                      return pw.PointChartValue(i.toDouble(), v.toDouble());
+                    },
+                  ),
+                )
+              ],
+            )
+          )
+        );
   }
 
   Future<int> saveReport() async {
