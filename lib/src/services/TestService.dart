@@ -41,4 +41,16 @@ class TestService {
       }
       return bitMask;
   }
+
+  List<int> convertBitsToAnswers(String bits) {
+    List<int> result = [];
+
+    for (int i = 0; i < bits.length; i += 2) {
+      String pair = bits.substring(i, i + 2);
+
+      result.add(int.parse(pair, radix: 2));
+    }
+
+    return result;
+}
 }

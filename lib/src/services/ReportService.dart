@@ -1,9 +1,7 @@
 import 'dart:developer';
-import 'dart:io';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:moodify/src/services/TestService.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,18 +12,15 @@ class ReportService {
   Map<String, int> _emotionCounts = {};
   Map<String, int> _activityCounts = {};
   int _noteCount = 0, _notesSkipped = 0;
-  DateTime _startDate=DateTime(2025,1,20), _endDate = DateTime.now();
+  DateTime _startDate = DateTime(2025, 1, 20), _endDate = DateTime.now();
 
-
-  void init(DateTime startDate, DateTime endDate)
-  {
+  void init(DateTime startDate, DateTime endDate) {
     _startDate = DateTime(startDate.year, startDate.month, startDate.day);
-    _endDate = DateTime(endDate.year, endDate.month, endDate.day);
+    _endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59);
   }
 
-
-  Future<List<Map<String, dynamic>>> prepareReport() async {
-    String user_id = await UserService.instance.user_id;
+  Future<List<Map<String, dynamic>>> _fetchNotes() async {
+    String user_id = await UserService.instance.getOrGenerateUserId();
 
     log("Generating report for $user_id");
     // Fetch notes belonging to users betwen startDate and endDate
@@ -59,8 +54,8 @@ class ReportService {
 
   void getCounts(List<Map<String, dynamic>> response) {
     _noteCount = response.length;
-    _notesSkipped = DateTime.now().difference(_startDate).inDays - _noteCount + 1;
-
+    _notesSkipped =
+        DateTime.now().difference(_startDate).inDays - _noteCount + 1;
 
     for (final item in response) {
       // Count moods
@@ -95,7 +90,7 @@ class ReportService {
     _moodCounts = sortCount(_moodCounts);
   }
 
-  pw.Chart? _pieChart(pw.Text title, Map<String, int> dataset, int itemCount) {
+  pw.Chart? _pieChart(pw.Widget title, Map<String, int> dataset, int itemCount) {
     const chartColors = [
       PdfColors.blue300,
       PdfColors.green300,
@@ -184,28 +179,29 @@ class ReportService {
             microsecond: 0): entry['mood'] as int
     };
 
-    // Assign colors to moods - TODO
-    final List<dynamic> moodLineColors = [
-      PdfColor.fromHex('FF840303'),
-      PdfColors.red300,
-      PdfColors.orange300,
-      PdfColor.fromHex('FF91AE00'),
-      PdfColors.green
-    ];
+    final pw.Widget chartTitle = pw.Center(
+      child: pw.Container(
+        child: pw.Text(
+          "Selected mood chart",
+          style: pw.TextStyle(font: pw.Font.times(), fontSize: 30)
+        )
+      )
+    );
 
     // Draw chart
     try {
       final chart = pw.Chart(
+        title: chartTitle,
           left: pw.Container(
-            alignment: pw.Alignment.topCenter,
-            margin: const pw.EdgeInsets.only(right: 5, top: 60),
+              alignment: pw.Alignment.topCenter,
+              margin: const pw.EdgeInsets.only(right: 5, top: 60),
               child: pw.Transform.rotateBox(
                   angle: 3.14 / 2,
                   child: pw.Text('Mood',
                       style: pw.TextStyle(
-                          font: pw.Font.timesBold(), fontSize: 20)))),
+                          font: pw.Font.times(), fontSize: 20)))),
           bottom: pw.Text('Note date',
-              style: pw.TextStyle(font: pw.Font.timesBold(), fontSize: 20)),
+              style: pw.TextStyle(font: pw.Font.times(), fontSize: 20)),
           grid: pw.CartesianGrid(
               xAxis: pw.FixedAxis(
                   // Generate a list for xAxis
@@ -242,192 +238,264 @@ class ReportService {
     }
   }
 
-  Future<Uint8List> generateReport() async {
-    final response = await prepareReport();
+  Future<List<Map<String, dynamic>>> _fetchTestResults() async {
 
-    /*final response = [
-  {
-    "id": 5,
-    "created_at": "2025-01-03T12:27:45.954151+00:00",
-    "mood": 4,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Angry"}},
-      {"emotions": {"emotion_name": "Calm"}},
-      {"emotions": {"emotion_name": "Sad"}}
-    ]
-  },
-  {
-    "id": 6,
-    "created_at": "2025-01-04T09:15:30.123456+00:00",
-    "mood": 3,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Happy"}},
-      {"emotions": {"emotion_name": "Excited"}}
-    ]
-  },
-  {
-    "id": 7,
-    "created_at": "2025-01-06T14:45:00.654321+00:00",
-    "mood": 2,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Calm"}},
-      {"emotions": {"emotion_name": "Neutral"}}
-    ]
-  },
-  {
-    "id": 8,
-    "created_at": "2025-01-10T18:30:10.789012+00:00",
-    "mood": 1,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Tired"}},
-      {"emotions": {"emotion_name": "Sad"}}
-    ]
-  },
-  {
-    "id": 9,
-    "created_at": "2025-01-12T11:30:10.789012+00:00",
-    "mood": 3,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Happy"}},
-      {"emotions": {"emotion_name": "Excited"}}
-    ]
-  },
-  {
-    "id": 10,
-    "created_at": "2025-01-15T08:30:10.789012+00:00",
-    "mood": 2,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Sad"}},
-      {"emotions": {"emotion_name": "Tired"}}
-    ]
-  },
-  {
-    "id": 11,
-    "created_at": "2025-01-17T16:30:10.789012+00:00",
-    "mood": 4,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Angry"}},
-      {"emotions": {"emotion_name": "Excited"}}
-    ]
-  },
-  {
-    "id": 12,
-    "created_at": "2025-01-20T14:30:10.789012+00:00",
-    "mood": 3,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Calm"}},
-      {"emotions": {"emotion_name": "Sad"}}
-    ]
-  },
-  {
-    "id": 13,
-    "created_at": "2025-01-22T10:30:10.789012+00:00",
-    "mood": 2,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Neutral"}},
-      {"emotions": {"emotion_name": "Tired"}}
-    ]
-  },
-  {
-    "id": 14,
-    "created_at": "2025-01-24T12:30:10.789012+00:00",
-    "mood": 1,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Sad"}},
-      {"emotions": {"emotion_name": "Tired"}}
-    ]
-  },
-  {
-    "id": 15,
-    "created_at": "2025-01-28T17:30:10.789012+00:00",
-    "mood": 4,
-    "notes_emotions": [
-      {"emotions": {"emotion_name": "Happy"}},
-      {"emotions": {"emotion_name": "Excited"}}
-    ]
+    String user_id = await UserService.instance.getOrGenerateUserId();
+    try{
+      final response = await Supabase.instance.client
+        .from('phq-9_results')
+        .select('''
+        created_at,
+        points,
+        answers
+        ''')
+        .eq('user_id', user_id)
+        .gte('created_at', _startDate.toIso8601String())
+        .lte('created_at', _endDate.toIso8601String());
+      return response;
+    } catch(e)
+    {
+      return [];
+    }
   }
-];
-    */
 
-    //final moodifyData = await rootBundle.load('assets/moodify_logo.jpg');
-    //final moodifyImage = pw.MemoryImage(moodifyData.buffer.asUint8List());
+  pw.Widget _testResultsTable(List<Map<String,dynamic>> testResults)
+  {
+      const List<String> tableHeaders = [
+        "Date submitted",
+        "Score"
+      ];
 
-    final List<List<dynamic>> moodPairs = [
-      [Icons.sentiment_very_dissatisfied_rounded, Color(0xFF840303)],
-      [Icons.sentiment_dissatisfied_rounded, Colors.red],
-      [Icons.sentiment_neutral_rounded, Colors.orange],
-      [Icons.sentiment_satisfied_rounded, Color(0xFF91AE00)],
-      [Icons.sentiment_very_satisfied_rounded, Colors.green]
-    ];
+      const List<String> testResultKeys = [
+        "created_at",
+        "points"
+      ];
 
-    // Emotion pie chart title
-    final pw.Text emotionChartTitle = pw.Text("Selected emotions",
-        style: pw.TextStyle(font: pw.Font.times(), fontSize: 30));
+      return pw.TableHelper.fromTextArray(
+        
+        headerHeight: 25,
+        cellHeight: 35,
 
-    // Activity pie chart title
-    final pw.Text activityChartTitle = pw.Text("Selected activities",
-        style: pw.TextStyle(font: pw.Font.times(), fontSize: 30));
+        headers: List<String>.generate(
+          tableHeaders.length,
+          (col) => tableHeaders[col],
+        ),
 
-    final double chartSize = 240;
+        data: List<List<String>>.generate(
+          testResults.length,
+          (row) => List<String>.generate(
+            tableHeaders.length,
+            (col) { 
+              final key = testResultKeys[col];
+              final value = testResults[row][key];
+              if (key == "created_at")
+              {
+                final date = DateTime.parse(value).toLocal();
+                final dateText = date.toString();
+                return dateText.substring(0, dateText.length-7); // Remove miliseconds (more readable way than getting all date fragments)
+              }
+              else if (value is int)
+              {
+                return value.toString();
+              }
+              else if (value is String)
+              {
+                return value;
+              }
+              else 
+              {
+                return '';
+              }
+            }
+          )
+        )
+      );
+  }
+
+  Future<Uint8List> generateReport() async {
+    final notesResponse = await _fetchNotes();
+    final testResultsResponse = await _fetchTestResults();
+
 
     final pdf = pw.Document();
     pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat.a4,
-        margin: pw.EdgeInsets.all(0),
-        build: (context) => pw.Column(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-          children: [
-            // Report title
-            pw.Container(
-                margin: pw.EdgeInsets.all(15),
-                child: pw.Text(
-                  'Note report',
-                  style: pw.TextStyle(
-                    font: pw.Font.timesBold(),
-                    fontSize: 60,
-                  ),
-                )),
+      _firstPage(notesResponse)
+    );
 
-            pw.Text(
-              'Notes filled: $_noteCount\nNotes skipped: $_notesSkipped',
-              style: pw.TextStyle(font: pw.Font.times(), fontSize: 30),
-            ),
+    if (testResultsResponse.isEmpty)
+    {
+      return pdf.save();
+    }
 
-            
-
-            pw.SizedBox(
-                child: _moodLineChart(response),
-                height: chartSize,
-                width: chartSize * 2),
-
-            pw.Row(
-              mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
-              children: [
-                pw.SizedBox(
-                  width: chartSize,
-                  height: chartSize,
-                  child: _pieChart(activityChartTitle, _activityCounts, 5),
-                ),
-                pw.SizedBox(
-                  width: chartSize,
-                  height: chartSize,
-                  child: _pieChart(emotionChartTitle, _emotionCounts, 5),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
+    pdf.addPage(
+      _testResultPages(testResultsResponse)
     );
 
     return pdf.save();
   }
 
+  pw.Page _firstPage(List<Map<String,dynamic>> notesResponse)
+  {
+    // Emotion pie chart title
+    final pw.Widget emotionChartTitle = pw.Container(
+      margin: pw.EdgeInsets.only(bottom: 10),
+      child: pw.Text(
+        "Selected emotions",
+        style: pw.TextStyle(font: pw.Font.times(), fontSize: 30)));
+
+    // Activity pie chart title
+    final pw.Widget activityChartTitle = pw.Container(
+      margin: pw.EdgeInsets.only(bottom: 10),
+      child: pw.Text(
+        "Selected activities",
+        style: pw.TextStyle(font: pw.Font.times(), fontSize: 30)));
+
+    const double chartSize = 240;
+    return pw.Page(
+      pageFormat: PdfPageFormat.a4,
+      margin: pw.EdgeInsets.all(0),
+      build: (context) => pw.Column(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [
+          // Report title
+          pw.Container(
+              margin: pw.EdgeInsets.all(15),
+              child: pw.Text(
+                'Note report',
+                style: pw.TextStyle(
+                  font: pw.Font.timesBold(),
+                  fontSize: 50,
+                ),
+              )),
+
+          pw.Text(
+            'Notes filled: $_noteCount\nNotes skipped: $_notesSkipped',
+            style: pw.TextStyle(font: pw.Font.times(), fontSize: 30),
+          ),
+
+          pw.SizedBox(
+              child: _moodLineChart(notesResponse),
+              height: chartSize,
+              width: chartSize * 2),
+
+          pw.Row(
+            mainAxisAlignment: pw.MainAxisAlignment.spaceAround,
+            children: [
+              pw.SizedBox(
+                width: chartSize,
+                height: chartSize,
+                child: _pieChart(activityChartTitle, _activityCounts, 5),
+              ),
+              pw.SizedBox(
+                width: chartSize,
+                height: chartSize,
+                child: _pieChart(emotionChartTitle, _emotionCounts, 5),
+              ),
+            ],
+          ),
+          pw.SizedBox(height: 10)
+        ],
+      ),
+    );
+  }
+
+  pw.MultiPage _testResultPages(List<Map<String,dynamic>> response)
+  {
+    return pw.MultiPage(
+      build:(context) {
+        List<pw.Widget> content = [
+          pw.Center(child: pw.Container(
+            margin: pw.EdgeInsets.only(bottom: 15),
+            child: pw.Text(
+            'PHQ-9 summary',
+            style: pw.TextStyle(font: pw.Font.timesBold(), fontSize: 50),
+            
+          ))),
+          _testResultsTable(response),
+          pw.SizedBox(height: 30),
+          _testResultsChart(response)
+        ];
+
+        return content;
+      }
+    );
+  }
+
+  pw.Widget _testResultsChart(List<Map<String, dynamic>> response) {
+    const double chartSize = 300;
+
+    final processedResponse = response.map((entry) {
+      final bits = entry['answers'] as String;
+      return TestService.instance.convertBitsToAnswers(bits);
+    }).toList();
+
+    final averageAnswerScore = List<double>.generate(
+        processedResponse[0].length,
+        (col) =>
+            processedResponse.map((row) => row[col]).reduce((a, b) => a + b) /
+            processedResponse.length);
+
+    final pw.Widget chartTitle = pw.Center(
+      child: pw.Container(
+        margin: pw.EdgeInsets.only(bottom: 10),
+        child: pw.Text(
+          'Average question score',
+          style: pw.TextStyle(font: pw.Font.times(), fontSize: 30)
+        )
+      )
+    );
+
+    return pw.Center(
+        child: pw.SizedBox(
+            height: chartSize,
+            child: pw.Chart(
+              title: chartTitle,
+              left: pw.Container(
+                alignment: pw.Alignment.topCenter,
+                margin: const pw.EdgeInsets.only(right: 5, top: 10),
+                child: pw.Transform.rotateBox(
+                  angle: 3.14 / 2,
+                  child: pw.Text('Average score'),
+                ),
+              ),
+              bottom: pw.Container(
+                  alignment: pw.Alignment.center,
+                  margin: const pw.EdgeInsets.only(top: 5),
+                  child: pw.Text('Question number')),
+              grid: pw.CartesianGrid(
+                xAxis: pw.FixedAxis.fromStrings(
+                  List<String>.generate(9, (index) => (index + 1).toString()),
+                  marginStart: 30,
+                  marginEnd: 30,
+                  ticks: true,
+                ),
+                yAxis: pw.FixedAxis(
+                  [0, 1, 2, 3],
+                  divisions: true,
+                ),
+              ),
+              datasets: [
+                pw.BarDataSet(
+                  color: PdfColors.blue100,
+                  width: 15,
+                  borderColor: PdfColors.cyan,
+                  data: List<pw.PointChartValue>.generate(
+                    averageAnswerScore.length,
+                    (i) {
+                      final v = averageAnswerScore[i] as num;
+                      return pw.PointChartValue(i.toDouble(), v.toDouble());
+                    },
+                  ),
+                )
+              ],
+            )
+          )
+        );
+  }
+
   Future<int> saveReport() async {
     try {
-      final fileContent =
-          await generateReport();
+      final fileContent = await generateReport();
 
       // TODO: This code works poorly, changes needed in the future (probably for path_provider)
       final response = await FilePicker.platform.saveFile(
@@ -437,13 +505,11 @@ class ReportService {
 
       log("Response: $response");
 
-      if (response == null)
-      {
+      if (response == null) {
         return -1;
       }
 
       return 0;
-
     } catch (e, stacktrace) {
       log("Error saving file: $e");
       log('$stacktrace');

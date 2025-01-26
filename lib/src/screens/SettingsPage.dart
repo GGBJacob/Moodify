@@ -63,7 +63,7 @@ class _SettingsPageState extends State<SettingsPage>
                           context: context,
                           builder: (context) => _popUp());
                     },
-                    child: const Text('Export raport'),
+                    child: const Text('Export report'),
                     )
                   ],
                 )
@@ -78,7 +78,7 @@ class _SettingsPageState extends State<SettingsPage>
 
   Widget _popUp() {
     return AlertDialog(
-      title: Text('Export raport'),
+      title: Text('Export report'),
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
