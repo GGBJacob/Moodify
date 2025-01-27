@@ -35,9 +35,13 @@ class _HomePageState extends State<HomePage>
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _firstBlock(),
+              const SizedBox(height: 20),
               _secondBlock(),
+              const SizedBox(height: 20),
               _thirdBlock(),
+              const SizedBox(height: 20),
               _fourthBlock(),
+              const SizedBox(height: 20),
               _fifthBlock(),
             ],
           ),
@@ -95,12 +99,10 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  // W innym pliku, gdzie chcesz wywołać funkcję
-
 Widget _fifthBlock() {
   return FutureBuilder<List<Pair<String, double>>>(
     //UserService.instance.user_id!
-    future: CrisisPredictionService.instance.calculateDailyRisks('c61f53e4-4783-4706-bbd1-891c876e414a'),
+    future: CrisisPredictionService.instance.dailyRisksPercents('c61f53e4-4783-4706-bbd1-891c876e414a'),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return Center(child: CircularProgressIndicator());
@@ -113,19 +115,28 @@ Widget _fifthBlock() {
   
         return CustomBlock(
           child: DataTable(
-            columns: const [
-              DataColumn(label: Text("Health Metric")),
-              DataColumn(label: Text("Risk Value")),
+            headingRowHeight: 0,
+            columns:  [
+              DataColumn(label: Container()),
+              DataColumn(label: Container()),
             ],
-            rows: List<DataRow>.generate(
-              risks.length-1, //-1 to not display last row - health
-              (int index) => DataRow(
+            rows: [
+              DataRow(
                 cells: [
-                  DataCell(Text(risks[index].getFirst())),
-                  DataCell(Text(risks[index].getSecond().toString())),
+                  DataCell(Center(child: Text("Health Metric", style: TextStyle(fontWeight: FontWeight.bold)))),
+                  DataCell(Center(child: Text("Risk Value [%]", style: TextStyle(fontWeight: FontWeight.bold)))),
                 ]
               ),
-            ),
+              ...List<DataRow>.generate(
+                risks.length - 1, //-1 to not display last row - health
+                (int index) => DataRow(
+                  cells: [
+                    DataCell(Center(child: Text(risks[index].getFirst()))),
+                    DataCell(Center(child: Text(risks[index].getSecond().toStringAsFixed(2)))),
+                  ]
+                ),
+              ),
+            ],
           ),
         );
       }

@@ -40,6 +40,16 @@ class CrisisPredictionService
     List<List<Pair<DateTime, double>>> average_scores_for_headers = calculateAverageScoresForHeaders(scores, average_moods_points, embedding_headers.length);
     return calculateRisksForHeaders(average_scores_for_headers, embedding_headers);
   }
+  Future<List<Pair<String, double>>> dailyRisksPercents(String user_uuid) async
+  {
+    List<Pair<String, double>> transformedRisks = await calculateDailyRisks(user_uuid);
+    for (int i=0; i<transformedRisks.length; i++)
+    {
+      transformedRisks[i].setSecond(transformedRisks[i].getSecond() * 100); 
+    }
+    
+    return transformedRisks;
+  }
   List<Pair<DateTime, double>> calculate_averages_scores(List<dynamic> list)
   {
     List<Pair<DateTime, double>> average_scores = [];
