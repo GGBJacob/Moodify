@@ -114,26 +114,48 @@ Widget _fifthBlock() {
   List<Pair<String, double>> risks = snapshot.data!;
   
         return CustomBlock(
-          child: DataTable(
-            headingRowHeight: 0,
-            columns:  [
-              DataColumn(label: Container()),
-              DataColumn(label: Container()),
-            ],
-            rows: [
-              DataRow(
-                cells: [
-                  DataCell(Center(child: Text("Health Metric", style: TextStyle(fontWeight: FontWeight.bold)))),
-                  DataCell(Center(child: Text("Risk Value [%]", style: TextStyle(fontWeight: FontWeight.bold)))),
-                ]
+          child: Table(
+            children: [
+              TableRow(
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "Health Metric", 
+                        style: TextStyle(fontWeight: FontWeight.bold)
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "Risk Value [%]", 
+                        style: TextStyle(fontWeight: FontWeight.bold)
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              ...List<DataRow>.generate(
-                risks.length - 1, //-1 to not display last row - health
-                (int index) => DataRow(
-                  cells: [
-                    DataCell(Center(child: Text(risks[index].getFirst()))),
-                    DataCell(Center(child: Text(risks[index].getSecond().toStringAsFixed(2)))),
-                  ]
+              // Data Rows
+              ...List<TableRow>.generate(
+                risks.length - 1, // -1 to not display last row - health
+                (int index) => TableRow(
+                  children: [
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(risks[index].getFirst()),
+                      ),
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(risks[index].getSecond().toStringAsFixed(2)),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ],
@@ -143,8 +165,6 @@ Widget _fifthBlock() {
     },
   );
 }
-
-
 
   Widget _facesRow()
   {
