@@ -77,6 +77,14 @@ class _NewNotePageState extends State<NewNotePage>
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[200],
+      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.pop(context),
+        child: Icon(Icons.arrow_back),
+        foregroundColor: Colors.black,
+        backgroundColor: Colors.white,
+        heroTag: "return", 
+      ),
       body: Center(
         child: SingleChildScrollView(
           child:  Column(
@@ -133,7 +141,7 @@ class _NewNotePageState extends State<NewNotePage>
                                 //Validation
                                 if(_formGlobalKey.currentState!.validate() && _selectedMood!=null){
                                   _formGlobalKey.currentState!.save();
-                                  NotesService.instance.saveNote(_selectedMood!, _selectedActivities, _selectedEmotions, _textFormOutput);
+                                  NotesService.instance.saveNote(_selectedMood!, _selectedEmotions, _selectedActivities, _textFormOutput);
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     SnackBar(content: Text("Added!"), behavior: SnackBarBehavior.floating), // "floating" prevents moving of the "addNote" button

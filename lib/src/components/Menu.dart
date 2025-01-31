@@ -8,6 +8,8 @@ import 'package:moodify/src/screens/NewNotePage.dart';
 //TODO: Change invisible button solution. Padding?
 
 class Menu extends StatefulWidget {
+  const Menu({super.key});
+
   @override
   State<Menu> createState() => _MenuState();
 }
