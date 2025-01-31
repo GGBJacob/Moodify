@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
+import '../services/TrendAnalysis.dart';
+import '../services/UserService.dart';
+import '../utils/Pair.dart';
 
 //TODO: Create page
 
@@ -19,24 +22,33 @@ class _HomePageState extends State<HomePage>
 
   // Page building method
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[200],
-      body: Center(
+ Widget build(BuildContext context) {
+  return Scaffold(
+    backgroundColor: Colors.grey[200],
+    body: Scrollbar( 
+      thumbVisibility: false, 
+      child: SingleChildScrollView( 
         child:
-          Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,  //spaces all children evenly in vertical axis
-
+          Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _firstBlock(),
+              const SizedBox(height: 20),
               _secondBlock(),
+              const SizedBox(height: 20),
               _thirdBlock(),
-              _fourthBlock()
+              const SizedBox(height: 20),
+              _fourthBlock(),
+              const SizedBox(height: 20),
+              _fifthBlock(),
             ],
-          )
+          ),
+        ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _firstBlock()
   {
@@ -68,7 +80,7 @@ class _HomePageState extends State<HomePage>
         child: Column(
             children: [
               Text(style: TextStyle(fontSize: 30),'Emotions:'),
-              Text(style: TextStyle(fontSize: 20),'Happy, exited, tired'),
+              Text(style: TextStyle(fontSize: 20),'Happy, excited, tired'),
             ]
         )
     );
@@ -85,6 +97,73 @@ class _HomePageState extends State<HomePage>
         )
     );
   }
+
+Widget _fifthBlock() {
+  return FutureBuilder<List<Pair<String, double>>>(
+    //UserService.instance.user_id!
+    future: CrisisPredictionService.instance.dailyRisksPercents('c61f53e4-4783-4706-bbd1-891c876e414a'),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return Center(child: CircularProgressIndicator());
+      } else if (snapshot.hasError) {
+        return Center(child: Text("Error: ${snapshot.error}"));
+      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+        return Center(child: Text("No data available"));
+      } else {
+  List<Pair<String, double>> risks = snapshot.data!;
+  
+        return CustomBlock(
+          child: Table(
+            children: [
+              TableRow(
+                children: [
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "Health Metric", 
+                        style: TextStyle(fontWeight: FontWeight.bold)
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(
+                        "Risk Value [%]", 
+                        style: TextStyle(fontWeight: FontWeight.bold)
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              // Data Rows
+              ...List<TableRow>.generate(
+                risks.length - 1, // -1 to not display last row - health
+                (int index) => TableRow(
+                  children: [
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(risks[index].getFirst()),
+                      ),
+                    ),
+                    Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(risks[index].getSecond().toStringAsFixed(2)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      }
+    },
+  );
+}
 
   Widget _facesRow()
   {

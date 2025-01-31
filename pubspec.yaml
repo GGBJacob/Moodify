@@ -37,6 +37,8 @@ dependencies:
   supabase_flutter: ^2.8.3
   shared_preferences: ^2.3.5
   uuid: ^4.5.1
+  flutter_dotenv: ^5.2.1
+  deepcopy: ^1.1.2
   pdf: ^3.11.1
   flutter_pdfview: ^1.4.0
   file_picker: ^8.1.7
@@ -96,3 +98,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/to/font-from-package
+
+  assets:
+    - ./.env
+    - assets/a.txt
