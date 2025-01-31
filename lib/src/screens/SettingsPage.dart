@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
+import 'package:moodify/src/components/PageTemplate.dart';
 import 'package:moodify/src/services/ReportService.dart';
 
 import '../components/CustomBlock.dart';
@@ -29,51 +30,41 @@ class _SettingsPageState extends State<SettingsPage>
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        backgroundColor: Colors.grey[200],
-        body: Center(
+    return PageTemplate(children: [
+      CustomBlock(
           child: Column(
+        children: [
+          SizedBox(height: 20),
+          Text(style: TextStyle(fontSize: 45), 'Settings'),
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              SizedBox(height: MediaQuery.of(context).size.height *0.03),
-              Expanded( child:
-              CustomBlock(
-                child: Column(
-                  children: [
-                    SizedBox(height:20),
-                    Text(style: TextStyle(fontSize: 45),'Settings'),
-                    SizedBox(height:20),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(Icons.nightlight_outlined),
-                        Text(style: TextStyle(fontSize: 20),'Dark mode'),
-                        Switch(
-                          value: darkModeOn,
-                          onChanged: (value) {
-                            setState(() {
-                              darkModeOn = value;
-                            });
-                          },)
-                      ],),
-                    SizedBox(height:20),
-                    ElevatedButton(
-                    style: ElevatedButton.styleFrom(textStyle: const TextStyle(fontSize: 20)),
-                    onPressed: () {
-                      showDialog(
-                          context: context,
-                          builder: (context) => _popUp());
-                    },
-                    child: const Text('Export report'),
-                    )
-                  ],
-                )
+              Icon(Icons.nightlight_outlined),
+              Text(style: TextStyle(fontSize: 20), 'Dark mode'),
+              Switch(
+                value: darkModeOn,
+                onChanged: (value) {
+                  setState(() {
+                    darkModeOn = value;
+                  });
+                },
               )
-              ),
-              
-              SizedBox(height: MediaQuery.of(context).size.height *0.03)
-            ])
-    )
-    );
+            ],
+          ),
+          SizedBox(height: 20),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+                textStyle: const TextStyle(fontSize: 20)),
+            onPressed: () {
+              showDialog(context: context, builder: (context) => _popUp());
+            },
+            child: const Text('Export report'),
+          )
+        ],
+      )),
+      PageTemplate.buildBottomSpacing(context)
+    ]);
   }
 
   Widget _popUp() {

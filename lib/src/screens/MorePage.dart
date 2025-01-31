@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
+import 'package:moodify/src/components/PageTemplate.dart';
 import 'package:moodify/src/screens/TestPage.dart';
 
 class MorePage extends StatefulWidget {
@@ -12,19 +13,12 @@ class MorePage extends StatefulWidget {
 class _MorePageState extends State<MorePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[200],
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start, // spaces all children evenly in vertical axis
-          children: [
-            SizedBox(height: MediaQuery.of(context).padding.top),
-            Expanded(
-              child: _blockWithTitleAndButtons(context)),
-            SizedBox(height: MediaQuery.of(context).size.height *0.03)
-          ],
-        ),
-      ),
+    return PageTemplate(
+      children: 
+      [
+        _blockWithTitleAndButtons(context),
+        PageTemplate.buildBottomSpacing(context)
+      ]
     );
   }
 
