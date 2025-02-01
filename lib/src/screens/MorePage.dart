@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
+import 'package:moodify/src/components/PageTemplate.dart';
 import 'package:moodify/src/screens/TestPage.dart';
 
 class MorePage extends StatefulWidget {
@@ -12,67 +13,68 @@ class MorePage extends StatefulWidget {
 class _MorePageState extends State<MorePage> {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey[200],
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start, // spaces all children evenly in vertical axis
-          children: [
-            SizedBox(height: MediaQuery.of(context).padding.top),
-            Expanded(
-              child: _blockWithTitleAndButtons(context)),
-            SizedBox(height: MediaQuery.of(context).size.height *0.03)
-          ],
-        ),
-      ),
+    return PageTemplate(
+      children: 
+      [
+        _blockWithTitleAndButtons(context),
+        PageTemplate.buildBottomSpacing(context)
+      ]
     );
   }
 
-    Widget _titleText() {
-    return Text(
-      //padding: const EdgeInsets.only(top: 25.0, bottom: 25.0), //TODO make more responsive
-  
-        "More Page", // Page title TODO
-        style: TextStyle(
-          fontSize: 24, 
-          fontWeight: FontWeight.bold, 
-          color: Colors.black, 
-        ),
-      )
-    ;
-  }
-
-  Widget _testButton(context) {
+  ///Creates an `Elevated button` wrapped with `Padding` and `Expanded` widgets. 
+  ///
+  /// - [onPressed] - function called when the button is pressed, defaults to null.
+  /// - [text] - button title, defaults to "Click me".
+  /// - [backgroundColor] - button's main color, defaults to null.
+  /// - [tintColor] - button's tint, defaults to null.
+  Widget _expandedButtonTile({
+    VoidCallback? onPressed,
+    String text = "Click me",
+    Color? backgroundColor,
+    Color? tintColor})
+  {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0),
       child: Row (
-        children: [ //TODO: Make a widget taking children and expanding them in a list
+        children: [
           Expanded(
             child: ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const TestPage()),
-                );
-              },
+              onPressed: onPressed,
               style: ElevatedButton.styleFrom(
-                shadowColor: Colors.transparent, 
+                surfaceTintColor: tintColor,
+                backgroundColor: backgroundColor,
+                shadowColor: Colors.transparent,
                 padding: EdgeInsets.all(15.0),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-              child: const Text(
-                "PHQ-9 test",
+                )
+              ), 
+              child: Text(
+                text,
                 style: TextStyle(
                   fontSize: 18, 
                   fontWeight: FontWeight.bold,
                 ),
-              ),
               )
             )
-        ]
+          )
+        ],
       )
+    );
+  }
+
+  /// Creates a button routing the user to the PHQ-9 test page
+  Widget _testButton(context) {
+    return _expandedButtonTile(
+      onPressed: () 
+      {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TestPage()),
+        );
+      },
+      text: "PHQ-9 test"
     );
   }
 
@@ -82,7 +84,7 @@ class _MorePageState extends State<MorePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          _titleText(), 
+          PageTemplate.buildPageTitle("First aid"), 
           const SizedBox(height: 10), // break between elements
           _testButton(context),
         ],

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:moodify/src/components/CustomBlock.dart';
+import 'package:moodify/src/components/PageTemplate.dart';
 
-// TODO: Create page
 // Use hero to display note
 
 class CalendarPage extends StatefulWidget {
@@ -15,6 +16,21 @@ class _CalendarPageState extends State<CalendarPage>
 {
   @override
   Widget build(BuildContext context) {
-    return Scaffold();
+    return PageTemplate(
+      children: 
+      [
+        CustomBlock(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              SizedBox(height: 20),
+              Text(style: TextStyle(fontSize: 45), 'Calendar'),
+              SizedBox(height: 20),
+            ],
+          ),
+        ),
+        PageTemplate.buildBottomSpacing(context)
+      ]
+    );
   }
 }

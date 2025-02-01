@@ -18,7 +18,7 @@ class TestService {
 
     final String answers = convertAnswersToBits(selectedAnswers);
 
-    String user_id = await UserService.instance.getOrGenerateUserId();
+    String user_id = UserService.instance.user_id;
 
     // Insert to phq-9 test table
     final response = await supabase

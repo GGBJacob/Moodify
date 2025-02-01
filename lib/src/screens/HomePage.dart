@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
+import 'package:moodify/src/components/PageTemplate.dart';
 import '../services/TrendAnalysis.dart';
 import '../services/UserService.dart';
 import '../utils/Pair.dart';
@@ -25,28 +26,38 @@ class _HomePageState extends State<HomePage>
  Widget build(BuildContext context) {
   return Scaffold(
     backgroundColor: Colors.grey[200],
-    body: Scrollbar( 
-      thumbVisibility: false, 
-      child: SingleChildScrollView( 
-        child:
-          Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              _firstBlock(),
-              const SizedBox(height: 20),
-              _secondBlock(),
-              const SizedBox(height: 20),
-              _thirdBlock(),
-              const SizedBox(height: 20),
-              _fourthBlock(),
-              const SizedBox(height: 20),
-              _fifthBlock(),
-            ],
+    body: Center(
+      child: Column(
+        children: [
+          SizedBox(height: MediaQuery.of(context).padding.top),
+          Expanded(
+            child: Scrollbar( 
+              thumbVisibility: false, 
+              child: SingleChildScrollView( 
+                child:
+                  Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      _firstBlock(),
+                      const SizedBox(height: 20),
+                      _secondBlock(),
+                      const SizedBox(height: 20),
+                      _thirdBlock(),
+                      const SizedBox(height: 20),
+                      _fourthBlock(),
+                      const SizedBox(height: 20),
+                      _fifthBlock(),
+                      PageTemplate.buildBottomSpacing(context)
+                    ],
+                    ),
+                  ),
+                ),
+              )
           ),
-        ),
+        ],
       ),
-    ),
+    )
   );
 }
 
