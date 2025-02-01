@@ -34,9 +34,7 @@ class _SettingsPageState extends State<SettingsPage>
       CustomBlock(
           child: Column(
         children: [
-          SizedBox(height: 20),
-          Text(style: TextStyle(fontSize: 45), 'Settings'),
-          SizedBox(height: 20),
+          PageTemplate.buildPageTitle("Settings"),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

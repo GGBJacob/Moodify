@@ -20,7 +20,7 @@ class ReportService {
   }
 
   Future<List<Map<String, dynamic>>> _fetchNotes() async {
-    String user_id = await UserService.instance.getOrGenerateUserId();
+    String user_id = UserService.instance.user_id;
 
     log("Generating report for $user_id");
     // Fetch notes belonging to users betwen startDate and endDate
@@ -240,7 +240,7 @@ class ReportService {
 
   Future<List<Map<String, dynamic>>> _fetchTestResults() async {
 
-    String user_id = await UserService.instance.getOrGenerateUserId();
+    String user_id = UserService.instance.user_id;
     try{
       final response = await Supabase.instance.client
         .from('phq-9_results')
