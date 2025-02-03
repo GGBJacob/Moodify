@@ -152,7 +152,6 @@ class _TestPageState extends State<TestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -161,7 +160,6 @@ class _TestPageState extends State<TestPage> {
           },
         ),
         title: const Text('PHQ-9 Test'),
-        backgroundColor: const Color.fromARGB(255, 163, 215, 149),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -198,7 +196,6 @@ Widget _MainQuestionText(String mainQuestion)
             style: TextStyle(
               fontSize: 20, 
               fontWeight: FontWeight.bold, 
-              color: Colors.black, 
             ),
           )
         )

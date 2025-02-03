@@ -3,21 +3,19 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/PageTemplate.dart';
 import 'package:moodify/src/services/ReportService.dart';
+import 'package:moodify/src/utils/themes/ThemeProvider';
+import 'package:provider/provider.dart';
 
 import '../components/CustomBlock.dart';
-
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
-
 }
 
-class _SettingsPageState extends State<SettingsPage>
-{
-  bool darkModeOn = false;
+class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   //Data from date picker
@@ -26,7 +24,6 @@ class _SettingsPageState extends State<SettingsPage>
 
   bool _startDateError = false;
   bool _endDateError = false;
-
 
   @override
   Widget build(BuildContext context) {
@@ -38,15 +35,19 @@ class _SettingsPageState extends State<SettingsPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.nightlight_outlined),
               Text(style: TextStyle(fontSize: 20), 'Dark mode'),
               Switch(
-                value: darkModeOn,
+                value: Provider.of<ThemeProvider>(context, listen: false).isDarkMode,
                 onChanged: (value) {
-                  setState(() {
-                    darkModeOn = value;
-                  });
+                  Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
                 },
+                thumbIcon: WidgetStateProperty.resolveWith((states) {
+                  return states.contains(WidgetState.selected)
+                      ? Icon(Icons.nightlight_outlined,
+                          color: Theme.of(context).colorScheme.surface)
+                      : Icon(Icons.wb_sunny,
+                          color: Theme.of(context).colorScheme.surface);
+                }),
               )
             ],
           ),
@@ -72,39 +73,38 @@ class _SettingsPageState extends State<SettingsPage>
         mainAxisSize: MainAxisSize.min,
         children: [
           Text('Choose start and end dates'),
-          SizedBox(height:20),
+          SizedBox(height: 20),
           _datePicker(true),
-          SizedBox(height:20),
+          SizedBox(height: 20),
           _datePicker(false),
         ],
       ),
       actions: [
         TextButton(
-            onPressed: () {Navigator.pop(context); _resetDialog();},
+            onPressed: () {
+              Navigator.pop(context);
+              _resetDialog();
+            },
             child: Text('Cancel')),
         TextButton(
-            onPressed: () => _validateDialog(context),
-            child: Text('Export'))
+            onPressed: () => _validateDialog(context), child: Text('Export'))
       ],
     );
   }
 
-  void _resetDialog()
-  {
+  void _resetDialog() {
     _startDateError = false;
     _endDateError = false;
     _startDateController.text = 'START DATE';
     _endDateController.text = 'END DATE';
   }
 
-
-  void _validateDialog(BuildContext context)
-  {
-    if (_endDate.difference(_startDate).inDays <= 0)
-    {
+  void _validateDialog(BuildContext context) {
+    if (_endDate.difference(_startDate).inDays <= 0) {
       log("Invalid date");
       // Invalid period entered
-      setState(() { // TODO: For some weird reason, this doesn't refresh the dialog
+      setState(() {
+        // TODO: For some weird reason, this doesn't refresh the dialog
         _endDateError = true;
         _startDateError = true;
       });
@@ -116,11 +116,9 @@ class _SettingsPageState extends State<SettingsPage>
     _resetDialog();
   }
 
-  void _exportRaport() async
-  {
+  void _exportRaport() async {
     //Snack bar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
         duration: Duration(days: 1),
         content: Row(
@@ -129,8 +127,7 @@ class _SettingsPageState extends State<SettingsPage>
             SizedBox(width: 20),
             Text('Generating report...'),
           ],
-        ))
-    );
+        )));
 
     // Generate report
     final ReportService reportService = ReportService();
@@ -142,10 +139,8 @@ class _SettingsPageState extends State<SettingsPage>
     ScaffoldMessenger.of(context).clearSnackBars();
 
     // Display success snack bar
-    if(success)
-    {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           content: Row(
             children: [
@@ -155,49 +150,44 @@ class _SettingsPageState extends State<SettingsPage>
             ],
           ),
           backgroundColor: Colors.green,
-          duration: Duration(seconds: 2)
-         )
-      );
+          duration: Duration(seconds: 2)));
       return;
     }
 
     // Display success task bar
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Row(
-            children: [
-              Icon(Icons.close, color: Colors.white),
-              SizedBox(width: 20),
-              Text('Report generation failed!'),
-            ],
-          ),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2)
-         )
-      );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: Row(
+          children: [
+            Icon(Icons.close, color: Colors.white),
+            SizedBox(width: 20),
+            Text('Report generation failed!'),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 2)));
   }
 
   Widget _datePicker(bool start) {
-    return   TextField(
-      controller: start?_startDateController:_endDateController,
+    return TextField(
+      controller: start ? _startDateController : _endDateController,
       decoration: InputDecoration(
-        errorText: start ? (_startDateError ? 'Invalid date' : null) : (_endDateError ? 'Invalid date' : null),
-        errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.redAccent)
-        ),
-        labelText: start?'START DATE':'END DATE',
+        errorText: start
+            ? (_startDateError ? 'Invalid date' : null)
+            : (_endDateError ? 'Invalid date' : null),
+        errorBorder:
+            OutlineInputBorder(borderSide: BorderSide(color: Colors.redAccent)),
+        labelText: start ? 'START DATE' : 'END DATE',
         filled: true,
         prefixIcon: Icon(Icons.calendar_today_outlined),
-        enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue),
+          borderSide: BorderSide(color: Colors.grey),
         ),
       ),
       readOnly: true,
-      onTap: (){
-        _selectDate(start?true:false);
+      onTap: () {
+        _selectDate(start ? true : false);
       },
     );
   }
@@ -207,9 +197,8 @@ class _SettingsPageState extends State<SettingsPage>
         context: context,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000),
-        lastDate: DateTime(2100)
-    );
-    if(_picked == null){
+        lastDate: DateTime(2100));
+    if (_picked == null) {
       return;
     }
     if (start) {
@@ -222,7 +211,6 @@ class _SettingsPageState extends State<SettingsPage>
       setState(() {
         _endDateController.text = _picked.toString().split(" ")[0];
       });
-
     }
   }
 }

@@ -1,0 +1,33 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+import 'package:moodify/src/utils/themes/darkTheme.dart';
+import 'package:moodify/src/utils/themes/lightTheme.dart';
+
+class ThemeProvider with ChangeNotifier {
+  late ThemeData _themeData;
+  late bool _isDarkMode;
+
+  ThemeProvider() {
+    var brightness = SchedulerBinding.instance.platformDispatcher.platformBrightness;
+    _themeData = brightness == Brightness.light ? lightTheme : darkTheme;
+    _isDarkMode = brightness == Brightness.dark;
+  }
+
+  ThemeData get themeData => _themeData;
+  bool get isDarkMode => _isDarkMode;
+
+  set themeData(ThemeData themeData){
+    _themeData = themeData;
+    notifyListeners();
+  }
+
+  void toggleTheme() {
+    if(_isDarkMode) {
+      themeData = lightTheme; 
+    } else {
+      themeData = darkTheme;
+    }
+    _isDarkMode=!_isDarkMode;
+  }
+
+}

@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/Menu.dart';
 import 'package:moodify/src/services/UserService.dart';
+import 'package:moodify/src/utils/themes/ThemeProvider';
+import 'package:moodify/src/utils/themes/darkTheme.dart';
+import 'package:moodify/src/utils/themes/lightTheme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-
+import 'package:provider/provider.dart';
 
 void main() async {
   await Supabase.initialize(
@@ -12,7 +15,12 @@ void main() async {
   );
   await dotenv.load(fileName: ".env");
   await UserService.instance.getOrGenerateUserId();
-  runApp(const MyApp());
+  runApp(
+   ChangeNotifierProvider<ThemeProvider>( 
+      create: (context) => ThemeProvider(), 
+      child: MyApp(),
+    )
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -24,10 +32,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'Moodify',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
-        useMaterial3: true,
-      ),
+      theme: Provider.of<ThemeProvider>(context).themeData,
       home: Menu()
     );
   }
