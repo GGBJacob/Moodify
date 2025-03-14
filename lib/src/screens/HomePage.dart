@@ -36,7 +36,6 @@ class _HomePageState extends State<HomePage>
   // Page building method
   @override
  Widget build(BuildContext context) {
-  _loadData();
   return Scaffold(
     backgroundColor: Colors.grey[200],
     body: Center(
