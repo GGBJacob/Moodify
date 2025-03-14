@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
 import 'package:moodify/src/components/PageTemplate.dart';
+import 'package:moodify/src/services/NotesService.dart';
 import '../services/TrendAnalysis.dart';
-import '../services/UserService.dart';
 import '../utils/Pair.dart';
-
-//TODO: Create page
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -18,12 +16,27 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage>
 {
 
-  int _goodMoodCount = 0, _midMoodCount = 0, _badMoodCount = 0;
   final int _count = 0;
+
+  List<Map<String, dynamic>>? weekSummary;
+
+  @override
+  void initState() {
+    _loadData();
+    super.initState();
+  }
+
+  Future<void> _loadData() async {
+    final summary = await NotesService.instance.fetchWeekSummary();
+    setState(() {
+      weekSummary = summary; // Update state to trigger rebuild
+    });
+  }
 
   // Page building method
   @override
  Widget build(BuildContext context) {
+  _loadData();
   return Scaffold(
     backgroundColor: Colors.grey[200],
     body: Center(
@@ -37,15 +50,15 @@ class _HomePageState extends State<HomePage>
                 child:
                   Center(
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     children: [
+                      const SizedBox(height: 20),
                       _firstBlock(),
                       const SizedBox(height: 20),
-                      _secondBlock(),
+                      _moodsBlock(),
                       const SizedBox(height: 20),
-                      _thirdBlock(),
+                      _emotionsBlock(),
                       const SizedBox(height: 20),
-                      _fourthBlock(),
+                      _activitiesBlock(),
                       const SizedBox(height: 20),
                       _fifthBlock(),
                       PageTemplate.buildBottomSpacing(context)
@@ -73,37 +86,162 @@ class _HomePageState extends State<HomePage>
     );
   }
 
-  Widget _secondBlock()
+  Widget _moodsBlock()
   {
+    Widget moodCounts = Text("Loading...");
+
+    if (weekSummary != null && weekSummary!.isNotEmpty) {
+      moodCounts = _moodsChart();
+    }
+
     return CustomBlock(
         child: Column(
             children: [
               Text(style: TextStyle(fontSize: 30),'Moods:'),
-              _facesRow(),
+              SizedBox(height: 20,),
+              moodCounts
             ]
         )
     );
   }
 
-  Widget _thirdBlock()
+  Widget _moodsChart()
   {
+  final rowsCount = 10;
+
+  final List<Color> activeColors = [
+  Color(0xFF840303),
+  Colors.red,
+  Colors.orange,
+  Color(0xFF91AE00),
+  Colors.green,
+  ];
+
+  final List<Color> disabledColors = [
+  Color(0xFFFFB3B3), 
+  Color(0xFFFFC2C2), 
+  Color(0xFFFFE0B2), 
+  Color(0xFFD4E157), 
+  Color(0xFFB9F6CA),
+  ];
+
+  final List<IconData> faces = [
+    Icons.sentiment_very_dissatisfied_rounded,
+    Icons.sentiment_dissatisfied_rounded,
+    Icons.sentiment_neutral_rounded,
+    Icons.sentiment_satisfied_rounded,
+    Icons.sentiment_very_satisfied_rounded,
+  ];
+
+  var moods = weekSummary!.firstWhere(
+    (item) => item['type'] == 'moods',
+    orElse: () => {'data': []},
+  );
+
+  List<int> columns = [];
+  List<int> moodCount = [0, 0, 0, 0, 0];
+  int countSum = 0;
+  for (var element in moods["data"])
+  {
+    countSum += element["count"] as int;
+  }
+
+  for (var element in moods["data"])
+  {
+    int idx = element["name"];
+    columns.add(idx);
+    moodCount[idx] = (rowsCount *element["count"]/countSum).round();
+  }
+
+  return Padding(
+    padding: EdgeInsets.symmetric(horizontal: 10),
+    child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: List.generate(5, (columnIndex) {
+          int activeCount = columns.contains(columnIndex) ? moodCount[columnIndex] : 0;
+
+          return Column(
+              children: List.generate(rowsCount +1, (index) {
+            
+            if (index == rowsCount)
+            {
+              return Padding(
+                padding: EdgeInsets.only(top: 5),
+                child: Icon(faces[columnIndex], color: activeColors[columnIndex])
+                );
+            }
+
+            bool isActive = index >= (rowsCount - activeCount);
+
+            return Padding(
+              padding: EdgeInsets.only(bottom: index < rowsCount-1 ? 5.0 : 0),
+              child: Container(
+                  width: 50,
+                  height: 10,
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(10),
+                      color: isActive
+                          ? activeColors[columnIndex]
+                          : disabledColors[columnIndex])),
+            );
+          }));
+        })));
+  }
+
+  Widget _emotionsBlock()
+  {
+    Widget fetchedEmotions = Text("Loading...");
+
+    if (weekSummary != null && weekSummary!.isNotEmpty) {
+      final emotionsData = weekSummary!.firstWhere(
+        (item) => item['type'] == 'emotions',
+        orElse: () => {'data': []},
+      )['data'] as List<Map<String, dynamic>>;
+        fetchedEmotions = emotionsData.isNotEmpty
+          ? Text(emotionsData.map((e) => e['name']).join(', '))
+          : Row(
+            children: [
+              Icon(Icons.sentiment_very_dissatisfied),
+              Text("No emotions, get to work!")
+            ]
+          );
+    }
+
     return CustomBlock(
         child: Column(
             children: [
               Text(style: TextStyle(fontSize: 30),'Emotions:'),
-              Text(style: TextStyle(fontSize: 20),'Happy, excited, tired'),
+              fetchedEmotions
             ]
         )
     );
   }
 
-  Widget _fourthBlock()
+  Widget _activitiesBlock()
   {
+
+    Widget fetchedActivities = Text("Loading...");
+
+    if (weekSummary != null && weekSummary!.isNotEmpty) {
+      final activitiesData = weekSummary!.firstWhere(
+        (item) => item['type'] == 'activities',
+        orElse: () => {'data': []},
+      )['data'] as List<Map<String, dynamic>>;
+        fetchedActivities = activitiesData.isNotEmpty
+          ? Text(activitiesData.map((e) => e['name']).join(', '))
+          : Row(
+            children: [
+              Icon(Icons.sentiment_very_dissatisfied),
+              Text("No activities, get to work!")
+            ]
+          );
+    }
+
     return CustomBlock(
         child: Column(
             children: [
               Text(style: TextStyle(fontSize: 30),'Activities:'),
-              _activitiesRow(),
+              fetchedActivities
             ]
         )
     );
@@ -175,33 +313,5 @@ Widget _fifthBlock() {
     },
   );
 }
-
-  Widget _facesRow()
-  {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text('$_goodMoodCount x'),
-        IconButton(onPressed: (){setState((){_goodMoodCount++;});}, icon: Icon(Icons.sentiment_very_satisfied, size: 50.0, color: Colors.green)),
-        Text('$_midMoodCount x'),
-        IconButton(onPressed: (){setState((){_midMoodCount++;});}, icon: Icon(Icons.sentiment_neutral_rounded, size: 50.0, color: Colors.orange)),
-        Text('$_badMoodCount x'),
-        IconButton(onPressed: (){setState((){_badMoodCount++;});}, icon: Icon(Icons.sentiment_very_dissatisfied, size: 50.0, color: Colors.red))
-      ],
-    );
-  }
-
-  Widget _activitiesRow()
-  {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(Icons.run_circle_outlined, size:50),
-        Icon(Icons.local_drink_outlined, size:50),
-        Icon(Icons.menu_book_rounded, size:50),
-        Icon(Icons.sports_gymnastics_rounded, size:50),
-        Icon(Icons.bed_rounded, size:50),
-        ],
-    );
-  }
+  
 }

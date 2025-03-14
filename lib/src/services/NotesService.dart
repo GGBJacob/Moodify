@@ -88,4 +88,134 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
     log("Added activities $activities to note $noteId");
     }
 
+  Future<List<Map<String, dynamic>>> fetchNotes(DateTime startDate, DateTime endDate) async {
+    String user_id = UserService.instance.user_id;
+
+    // Fetch notes belonging to users betwen startDate and endDate
+    try {
+      final response = await Supabase.instance.client
+          .from('notes')
+          .select('''
+        id,
+        created_at,
+        mood,
+        notes_emotions(emotions(emotion_name)),
+        notes_activities(activities(activity_name))
+    ''')
+          .eq('user_id', user_id)
+          .gte('created_at', startDate.toIso8601String())
+          .lte('created_at', endDate.toIso8601String());
+
+      log("Response: $response");
+      return response;
+    } catch (e) {
+      log("Error while fetching user's notes: $e");
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> fetchTestResults(DateTime startDate, DateTime endDate) async {
+
+    String user_id = UserService.instance.user_id;
+    try{
+      final response = await Supabase.instance.client
+        .from('phq-9_results')
+        .select('''
+        created_at,
+        points,
+        answers
+        ''')
+        .eq('user_id', user_id)
+        .gte('created_at', startDate.toIso8601String())
+        .lte('created_at', endDate.toIso8601String());
+      return response;
+    } catch(e)
+    {
+      return [];
+    }
+  }
+
+  Future<Map<String, dynamic>> _fetchAndCountWeeklyElements(
+      String? linkingTable,
+      String dataTable,
+      String columnName) async
+  {
+    try {
+    DateTime now = DateTime.now();
+
+    // Calculate the start of the week (Monday)
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    startOfWeek = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+
+    DateTime endOfWeek = now;
+
+    String userId = UserService.instance.user_id;
+
+    // Fetch element count for this week
+    final response = await Supabase.instance.client
+        .from('notes')
+        .select( linkingTable != null 
+          ? '$linkingTable($dataTable($columnName))'
+          : columnName
+          )
+        .eq('user_id', userId)
+        .gte('created_at', startOfWeek.toIso8601String())
+        .lte('created_at', endOfWeek.toIso8601String());
+
+    Map<dynamic, int> countsMap = {};
+
+    // Count elements
+    for (var item in response)
+    {
+      if (linkingTable != null) {
+        var names = item[linkingTable];
+        for (var element in names)
+        {
+          String name = element[dataTable][columnName] as String;
+          countsMap[name] = (countsMap[name] ?? 0) + 1;
+        }
+      }
+      else
+      {
+        int mood = item[columnName] as int;
+        countsMap[mood] = (countsMap[mood] ?? 0) + 1;
+      }
+      
+    }
+
+    
+    List<Map<String, dynamic>> sortedList = countsMap.entries
+    .map((entry) => {'name': entry.key, 'count': entry.value})
+    .toList();
+
+    // Sort elements
+    if (linkingTable != null)
+    {
+      sortedList.sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
+    }
+    // Sort moods by value, not count
+    else{
+      sortedList.sort((a, b) => (b['name'] as int).compareTo(a['name'] as int));
+    }
+    return {'type': dataTable, 'data': sortedList};
+
+    } catch (e) {
+      log("Error fetching week summary: $e");
+      return {};
+    }
+  }
+
+
+  Future<List<Map<String, dynamic>>> fetchWeekSummary() async {
+    try {
+      return [
+        await _fetchAndCountWeeklyElements('notes_emotions','emotions','emotion_name'),
+        await _fetchAndCountWeeklyElements('notes_activities','activities','activity_name'),
+        await _fetchAndCountWeeklyElements(null,'moods', 'mood')
+      ];
+    } catch (e) {
+      log("Error fetching week summary: $e");
+      return [];
+    }
+  }
 }

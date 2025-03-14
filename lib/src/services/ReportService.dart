@@ -1,11 +1,10 @@
 import 'dart:developer';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:moodify/src/services/NotesService.dart';
 import 'package:moodify/src/services/TestService.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'UserService.dart';
 
 class ReportService {
   Map<int, int> _moodCounts = {};
@@ -19,38 +18,7 @@ class ReportService {
     _endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59);
   }
 
-  Future<List<Map<String, dynamic>>> _fetchNotes() async {
-    String user_id = UserService.instance.user_id;
-
-    log("Generating report for $user_id");
-    // Fetch notes belonging to users betwen startDate and endDate
-    try {
-      final response = await Supabase.instance.client
-          .from('notes')
-          .select('''
-        id,
-        created_at,
-        mood,
-        notes_emotions(emotions(emotion_name)),
-        notes_activities(activities(activity_name))
-    ''')
-          .eq('user_id', user_id)
-          .gte('created_at', _startDate.toIso8601String())
-          .lte('created_at', _endDate.toIso8601String());
-
-      log("Response: $response");
-
-      getCounts(response);
-      sortCounts();
-      log("Moods: $_moodCounts");
-      log("Emotions: $_emotionCounts");
-      log("Activities: $_activityCounts");
-      return response;
-    } catch (e) {
-      log("Error while fetching user's notes: $e");
-      return [];
-    }
-  }
+  
 
   void getCounts(List<Map<String, dynamic>> response) {
     _noteCount = response.length;
@@ -238,26 +206,6 @@ class ReportService {
     }
   }
 
-  Future<List<Map<String, dynamic>>> _fetchTestResults() async {
-
-    String user_id = UserService.instance.user_id;
-    try{
-      final response = await Supabase.instance.client
-        .from('phq-9_results')
-        .select('''
-        created_at,
-        points,
-        answers
-        ''')
-        .eq('user_id', user_id)
-        .gte('created_at', _startDate.toIso8601String())
-        .lte('created_at', _endDate.toIso8601String());
-      return response;
-    } catch(e)
-    {
-      return [];
-    }
-  }
 
   pw.Widget _testResultsTable(List<Map<String,dynamic>> testResults)
   {
@@ -313,8 +261,10 @@ class ReportService {
   }
 
   Future<Uint8List> generateReport() async {
-    final notesResponse = await _fetchNotes();
-    final testResultsResponse = await _fetchTestResults();
+    final notesResponse = await NotesService.instance.fetchNotes(_startDate, _endDate);
+    getCounts(notesResponse);
+    sortCounts();
+    final testResultsResponse = await NotesService.instance.fetchTestResults(_startDate, _endDate);
 
 
     final pdf = pw.Document();
