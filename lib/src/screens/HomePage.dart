@@ -97,7 +97,6 @@ class _HomePageState extends State<HomePage>
         child: Column(
             children: [
               Text(style: TextStyle(fontSize: 30),'Moods:'),
-              SizedBox(height: 20,),
               moodCounts
             ]
         )
@@ -106,7 +105,8 @@ class _HomePageState extends State<HomePage>
 
   Widget _moodsChart()
   {
-  final rowsCount = 10;
+  final rowCount = 10;
+  final columnCount = 5;
 
   final List<Color> activeColors = [
   Color(0xFF840303),
@@ -132,37 +132,41 @@ class _HomePageState extends State<HomePage>
     Icons.sentiment_very_satisfied_rounded,
   ];
 
+  // Making sure nobody forgets to change any of the mentioned variables
+  assert (rowCount > 0);
+  assert (columnCount > 0);
+  assert (columnCount == activeColors.length);
+  assert (activeColors.length == disabledColors.length);
+  assert (disabledColors.length == faces.length);
+
   var moods = weekSummary!.firstWhere(
     (item) => item['type'] == 'moods',
     orElse: () => {'data': []},
   );
 
   List<int> columns = [];
-  List<int> moodCount = [0, 0, 0, 0, 0];
+  List<int> moodCount = List.filled(columnCount, 0);
   int countSum = 0;
   for (var element in moods["data"])
   {
     countSum += element["count"] as int;
-  }
-
-  for (var element in moods["data"])
-  {
     int idx = element["name"];
     columns.add(idx);
-    moodCount[idx] = (rowsCount *element["count"]/countSum).round();
+    moodCount[idx] = rowCount * element["count"] as int;
   }
 
+
   return Padding(
-    padding: EdgeInsets.symmetric(horizontal: 10),
+    padding: EdgeInsets.only(left: 10, right: 10, top: 20),
     child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: List.generate(5, (columnIndex) {
-          int activeCount = columns.contains(columnIndex) ? moodCount[columnIndex] : 0;
+        children: List.generate(columnCount, (columnIndex) {
+          int activeCount = columns.contains(columnIndex) ? (moodCount[columnIndex]/countSum).floor() : 0;
 
           return Column(
-              children: List.generate(rowsCount +1, (index) {
+              children: List.generate(rowCount +1, (index) {
             
-            if (index == rowsCount)
+            if (index == rowCount)
             {
               return Padding(
                 padding: EdgeInsets.only(top: 5),
@@ -170,13 +174,13 @@ class _HomePageState extends State<HomePage>
                 );
             }
 
-            bool isActive = index >= (rowsCount - activeCount);
+            bool isActive = index >= (rowCount - activeCount);
 
             return Padding(
-              padding: EdgeInsets.only(bottom: index < rowsCount-1 ? 5.0 : 0),
+              padding: EdgeInsets.only(bottom: index < rowCount-1 ? 2.0 : 0),
               child: Container(
                   width: 50,
-                  height: 10,
+                  height: 8,
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(10),
                       color: isActive
@@ -200,8 +204,8 @@ class _HomePageState extends State<HomePage>
           ? Text(emotionsData.map((e) => e['name']).join(', '))
           : Row(
             children: [
-              Icon(Icons.sentiment_very_dissatisfied),
-              Text("No emotions, get to work!")
+              Icon(Icons.sentiment_very_dissatisfied_outlined),
+              Text("No emotions found!")
             ]
           );
     }
@@ -230,8 +234,8 @@ class _HomePageState extends State<HomePage>
           ? Text(activitiesData.map((e) => e['name']).join(', '))
           : Row(
             children: [
-              Icon(Icons.sentiment_very_dissatisfied),
-              Text("No activities, get to work!")
+              Icon(Icons.sentiment_very_dissatisfied_outlined),
+              Text("No activities found!")
             ]
           );
     }
