@@ -60,7 +60,12 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
     final notesResponse = await supabase
     .from('notes')
     .insert([
-      { 'user_id': UserService.instance.user_id, 'mood': mood, 'note':note, 'scores': scores },
+      { 
+        'user_id': Supabase.instance.client.auth.currentUser?.id ?? (throw Exception("User not authenticated")), 
+        'mood': mood, 
+        'note': note, 
+        'scores': scores 
+      },
     ])
     .select();
 

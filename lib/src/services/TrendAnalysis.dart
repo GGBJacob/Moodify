@@ -26,7 +26,7 @@ class CrisisPredictionService
 
   static CrisisPredictionService get instance => _instance;
 
-  final SupabaseClient supabase = UserService.instance.supabase;
+  final SupabaseClient supabase = Supabase.instance.client;
   
   Future<List<Pair<String, double>>> calculateDailyRisks(String user_uuid) async
   {

@@ -20,7 +20,7 @@ class ReportService {
   }
 
   Future<List<Map<String, dynamic>>> _fetchNotes() async {
-    String user_id = UserService.instance.user_id;
+    String user_id = Supabase.instance.client.auth.currentUser?.id ?? (throw Exception("User not authenticated"));
 
     log("Generating report for $user_id");
     // Fetch notes belonging to users betwen startDate and endDate
@@ -240,7 +240,7 @@ class ReportService {
 
   Future<List<Map<String, dynamic>>> _fetchTestResults() async {
 
-    String user_id = UserService.instance.user_id;
+    String user_id = Supabase.instance.client.auth.currentUser?.id ?? (throw Exception("User not authenticated"));
     try{
       final response = await Supabase.instance.client
         .from('phq-9_results')
