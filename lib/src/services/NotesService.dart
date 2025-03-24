@@ -1,5 +1,5 @@
 import 'dart:developer';
-
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'UserService.dart';
 import 'package:moodify/src/services/MentalService.dart';
@@ -9,6 +9,10 @@ class NotesService {
   NotesService._privateConstructor();
 
   static final NotesService _instance = NotesService._privateConstructor();
+
+  final StreamController<void> _updateController = StreamController.broadcast(); //notifier
+
+  Stream<void> get updates => _updateController.stream;
 
   static NotesService get instance => _instance;
 
@@ -86,7 +90,10 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         return {'activity_id': activity, 'note_id': noteId};
       }).toList());
     log("Added activities $activities to note $noteId");
-    }
+
+    _updateController.add(null); //notify calendar
+    
+  }
 
   Future<List<Map<String, dynamic>>> fetchNotes(DateTime startDate, DateTime endDate) async {
     String user_id = UserService.instance.user_id;
@@ -220,12 +227,11 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
   }
 
   
-  Future<Map<String, dynamic>> fetchAndCountMonthMoods(DateTime date) async
+  Future<Map<int, int>> fetchAndCountMonthMoods(DateTime date) async
   {
     try {
     DateTime now = DateTime.now();
 
-    // Calculate the start of the week (Monday)
     DateTime startOfMonth = DateTime(date.year, date.month, 1);
 
     DateTime endOfMonth = DateTime(date.year, date.month + 1, 0); //"zero" day is last day of moth
@@ -237,64 +243,47 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
 
     String userId = UserService.instance.user_id;
 
-    //Data structures
-    Map<int, int> monthMoodCount = {}; //Occurence of each of mood in month
-    Map<int, Map<int, int>> dailyMoodCount = {}; //Moods of each day
-    Map<int, int> dailyMoodAverages = {}; //Average daily mood
-
-   //Iteration by every day of month
-    for (int day = 1; day <= endOfMonth.day; day++) {
-      DateTime dayStart = DateTime(now.year, now.month, day);
-      DateTime dayEnd = dayStart.add(Duration(days: 1)).subtract(Duration(seconds: 1));
-
-      //Fetching daily moods
-      final response = await Supabase.instance.client
+    final response = await Supabase.instance.client
           .from('notes')
-          .select('mood')
+          .select('mood, created_at')
           .eq('user_id', userId)
-          .gte('created_at', dayStart.toIso8601String())
-          .lte('created_at', dayEnd.toIso8601String());
+          .gte('created_at', startOfMonth.toIso8601String())
+          .lte('created_at', endOfMonth.toIso8601String())
+          .order('created_at', ascending: true);
 
-      if (response.isNotEmpty) {
-        Map<int, int> moodCounts = {}; 
 
-        for (var item in response) {
-          int mood = item['mood'] as int;
+      Map<int, int> moodAverages = {}; 
+      DateTime current_date = DateTime.parse(response.first['created_at']);
 
-          monthMoodCount[mood] = (monthMoodCount[mood] ?? 0) + 1; //counting monthly moods
-
-          moodCounts[mood] = (moodCounts[mood] ?? 0) + 1; //counting daily moods
-        }
-
-        //Calculating average mood
-        int moods_number = 0;
-        int moods_sum = 0;
-
-        moodCounts.forEach((mood, count) {
-          moods_number += count; // Count all moods
-          moods_sum += mood * count; // Sum of moods * their occurrences
-        });
+      int counter = 0;
+      int sum = 0;
+      for (var item in response) {
         
-        // Storing the average mood for the day
-        dailyMoodAverages[day] = moods_number > 0 ? (moods_sum / moods_number).round() : 0;
+       DateTime temp_date = DateTime.parse(item['created_at']);
+        int mood = item['mood'] as int;
 
-        //Daily moods
-        dailyMoodCount[day] = moodCounts;
+        
+        if(temp_date.day == current_date.day)
+        {
+          sum += mood;
+          counter++;
+        }
+        else 
+        {
+          moodAverages[temp_date.day-1] = (sum/counter).toInt();
+          sum = mood;
+          counter = 1;
+          current_date = temp_date;
+        }
+        
       }
-    }
 
-    return {
-      'totalMoodCounts': monthMoodCount,
-      'dailyMoodCounts': dailyMoodCount,
-      'dailyMoodAverages': dailyMoodAverages
-    };
+      moodAverages[current_date.day] = (sum/counter).toInt();
+
+    return  moodAverages;
     } catch (e) {
       log("Error fetching monthly moods: $e");
-      return {
-        'totalMoodCounts': {},
-        'dailyMoodCounts': {},
-        'dailyMoodAverages': {}
-      };
+      return {};
     }
   }
 }
