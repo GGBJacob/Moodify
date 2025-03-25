@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:moodify/src/components/Menu.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'src/services/CrisisPrediction.dart';
 
 
 void main() async {
@@ -11,6 +12,7 @@ void main() async {
     url: "https://ivaobiqbdwofqlnvrgkt.supabase.co"
   );
   await dotenv.load(fileName: ".env");
+  CrisisPredictionService.instance.calculateDailyRisks('c61f53e4-4783-4706-bbd1-891c876e414a');
   runApp(const MyApp());
 }
 
