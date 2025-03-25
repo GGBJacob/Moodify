@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -14,7 +16,8 @@ class UserService {
 
   final SupabaseClient supabase  = Supabase.instance.client;
 
-  String? user_id;
+  late String user_id;
+
 
   void _initialize() async {
     user_id = await getOrGenerateUserId();
@@ -34,6 +37,7 @@ class UserService {
 
     // Rerurn and save UUID
     user_id = storedUserId;
+    log("Loaded user id: $user_id");
     return storedUserId;
   }
 
