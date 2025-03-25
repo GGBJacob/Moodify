@@ -36,7 +36,7 @@ class CrisisPredictionService
     List<Pair<DateTime, List<double>>> scores = await fetchScores(user_uuid);
     scores = normaliseScores(scores);
     List<String> embedding_headers = await loadEmbeddingHeaders();
-    List<List<Pair<DateTime, double>>> average_scores_for_headers = calculateAverageScoresForHeaders(scores, average_moods_points, embedding_headers.length, 2);
+    List<List<Pair<DateTime, double>>> average_scores_for_headers = calculateAverageScoresForHeaders(scores, average_moods_points, embedding_headers.length, 3);
     return calculateRisksForHeaders(average_scores_for_headers, embedding_headers);
   }
   Future<List<Pair<String, double>>> dailyRisksPercents(String user_uuid) async

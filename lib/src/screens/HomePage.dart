@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
 import 'package:moodify/src/components/PageTemplate.dart';
-import '../services/TrendAnalysis.dart';
+import '../services/CrisisPrediction.dart';
 import '../services/UserService.dart';
 import '../utils/Pair.dart';
 
