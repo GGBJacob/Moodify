@@ -12,7 +12,7 @@ void main() async {
     url: "https://ivaobiqbdwofqlnvrgkt.supabase.co"
   );
   await dotenv.load(fileName: ".env");
-  CrisisPredictionService.instance.calculateDailyRisks('c61f53e4-4783-4706-bbd1-891c876e414a');
+  //CrisisPredictionService.instance.calculateDailyRisks('c61f53e4-4783-4706-bbd1-891c876e414a');
   runApp(const MyApp());
 }
 
