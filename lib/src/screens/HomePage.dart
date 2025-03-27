@@ -15,9 +15,6 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage>
 {
-
-  final int _count = 0;
-
   List<Map<String, dynamic>>? weekSummary;
 
   @override
@@ -78,7 +75,7 @@ class _HomePageState extends State<HomePage>
     return CustomBlock(
         child: Column(
             children: [
-              Text(style: TextStyle(fontSize: 45),'Your week: $_count%'),
+              Text(style: TextStyle(fontSize: 45),'Your week: 0 %'),
               Icon(Icons.sentiment_satisfied, size:150, color: Colors.cyan),
             ]
         )
@@ -203,6 +200,8 @@ class _HomePageState extends State<HomePage>
         fetchedEmotions = emotionsData.isNotEmpty
           ? Text(emotionsData.map((e) => e['name']).join(', '))
           : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 5,
             children: [
               Icon(Icons.sentiment_very_dissatisfied_outlined),
               Text("No emotions found!")
@@ -233,6 +232,8 @@ class _HomePageState extends State<HomePage>
         fetchedActivities = activitiesData.isNotEmpty
           ? Text(activitiesData.map((e) => e['name']).join(', '))
           : Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 5,
             children: [
               Icon(Icons.sentiment_very_dissatisfied_outlined),
               Text("No activities found!")
