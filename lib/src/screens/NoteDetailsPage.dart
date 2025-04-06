@@ -1,0 +1,193 @@
+import 'package:flutter/material.dart';
+import 'package:moodify/src/components/CustomBlock.dart';
+import 'package:moodify/src/components/PageTemplate.dart';
+
+class NoteDetailsPage extends StatefulWidget {
+  final Map<String, dynamic> note; 
+  final String date;
+  final Image image;
+  
+  const NoteDetailsPage({super.key, required this.note, required this.date, required this.image});
+
+  @override
+  State<NoteDetailsPage> createState() => _NoteDetailsPageState();
+}
+
+class _NoteDetailsPageState extends State<NoteDetailsPage> {
+  @override
+  Widget build(BuildContext context) {
+    var note = widget.note;
+    var date = widget.date;
+    var image = widget.image;
+
+    return Scaffold(
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text(date), 
+      ),
+      body: PageTemplate(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 20.0, bottom: 20.0), 
+            child: CustomBlock(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start, 
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0, left: 3.0),
+                    child: Row(
+                      children: [
+                        Image(
+                            image: image.image, 
+                            width: 70,
+                          ),
+                        SizedBox(width: 8), 
+                        Text(
+                          'Note created at: ${note['time']}',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12.0, left: 3.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Emotions:',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 8),
+                        (note['notes_emotions'] as List).isEmpty
+                          ? Text(
+                              'No emotions added',
+                              style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                            )
+                          : Wrap(
+                              spacing: 8.0, 
+                              runSpacing: 4.0,
+                              children: (note['notes_emotions'] as List<dynamic>).map((emotion) {
+                                return Chip(
+                                  label: Text(
+                                    emotion['emotions']?['emotion_name'] ?? 'Unknown',
+                                  ),
+                                  backgroundColor: Color(0xFF8C4A60), 
+                                  labelStyle: TextStyle(color: Colors.white), 
+                                );
+                              }).toList(),
+                            ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                  padding: const EdgeInsets.only(bottom: 12.0, left: 3.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Activities:',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                  SizedBox(height: 8),
+                  (note['notes_activities'] as List).isEmpty
+                    ? Text(
+                        'No activities added',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                      )
+                    : Wrap(
+                        spacing: 8.0,
+                        runSpacing: 4.0,
+                        children: (note['notes_activities'] as List<dynamic>).map((activity) {
+                          String activityName = activity['activities']?['activity_name'] ?? 'Unknown';
+                          IconData? activityIcon;
+                          switch (activityName) {
+                            case 'Yoga':
+                              activityIcon = Icons.self_improvement;
+                              break;
+                            case 'Walk':
+                              activityIcon = Icons.directions_walk;
+                              break;
+                            case 'Study':
+                              activityIcon = Icons.menu_book_rounded;
+                              break;
+                            case 'Socialize':
+                              activityIcon = Icons.diversity_3;
+                              break;
+                            case 'Work':
+                              activityIcon = Icons.business_center_outlined;
+                              break;
+                            default:
+                              activityIcon = Icons.help_outline;
+                          }
+                          return Chip(
+                            label: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(activityIcon, size: 20, color: Colors.white),
+                                SizedBox(width: 5),
+                                Text(
+                                  activityName,
+                                  style: TextStyle(color: Colors.white),
+                                ),
+                              ],
+                            ),
+                            backgroundColor: Color(0xFF8C4A60),
+                          );
+                        }).toList(),
+                      ),
+                      ],
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 5.0, left: 3.0),
+                    child: Text(
+                      'Note',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                        color: Colors.pink[900],
+                      ),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8.0),
+                    child: Container(
+                      width: double.infinity, 
+                      padding: const EdgeInsets.all(12.0),
+                      decoration: BoxDecoration(
+                        color: Color(0xFFFFF0F5), 
+                        borderRadius: BorderRadius.circular(12.0),
+                      ),
+                      child: Text(
+                      (note['note'] ?? '').trim().isNotEmpty ? note['note'].trim() : 'No note added',
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

@@ -207,7 +207,7 @@ class _NewNotePageState extends State<NewNotePage>
                 ...filteredElements.map(
                   (element) => Chip(
                     label: Text(element['name']),
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Color(0xFF8C4A60),
                     labelStyle: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -252,7 +252,7 @@ class _NewNotePageState extends State<NewNotePage>
                 child: Chip(
                   label: Text(element['name']),
                   backgroundColor:
-                  isSelected ? Colors.blue : Colors.grey[300],
+                  isSelected ? Color(0xFF8C4A60) : Colors.grey[300],
                   labelStyle: TextStyle(
                     color: isSelected ? Colors.white : Colors.black,
                   ),

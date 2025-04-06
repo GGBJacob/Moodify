@@ -5,8 +5,6 @@ import '../services/TrendAnalysis.dart';
 import '../services/UserService.dart';
 import '../utils/Pair.dart';
 
-//TODO: Create page
-
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
@@ -91,7 +89,7 @@ class _HomePageState extends State<HomePage>
         child: Column(
             children: [
               Text(style: TextStyle(fontSize: 30),'Emotions:'),
-              Text(style: TextStyle(fontSize: 20),'Happy, excited, tired'),
+              Text(style: TextStyle(fontSize: 20),'happy, excited, tired'),
             ]
         )
     );

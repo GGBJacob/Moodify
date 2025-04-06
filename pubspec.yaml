@@ -103,8 +103,8 @@ flutter:
     - ./.env
     - assets/a.txt
     - assets/moodify_logo.jpg
-    - assets/very_sad.jpg
-    - assets/sad.jpg
-    - assets/neutral.jpg
-    - assets/happy.jpg
-    - assets/really_happy.jpg
+    - assets/very_sad.png
+    - assets/sad.png
+    - assets/neutral.png
+    - assets/happy.png
+    - assets/very_happy.png

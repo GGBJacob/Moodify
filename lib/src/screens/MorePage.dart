@@ -28,6 +28,7 @@ class _MorePageState extends State<MorePage> {
   /// - [text] - button title, defaults to "Click me".
   /// - [backgroundColor] - button's main color, defaults to null.
   /// - [tintColor] - button's tint, defaults to null.
+  /// 
   Widget _expandedButtonTile({
     VoidCallback? onPressed,
     String text = "Click me",

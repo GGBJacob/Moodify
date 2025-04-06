@@ -107,7 +107,8 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         created_at,
         mood,
         notes_emotions(emotions(emotion_name)),
-        notes_activities(activities(activity_name))
+        notes_activities(activities(activity_name)),
+        note
     ''')
           .eq('user_id', user_id)
           .gte('created_at', startDate.toIso8601String())
@@ -259,7 +260,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       int sum = 0;
       for (var item in response) {
         
-       DateTime temp_date = DateTime.parse(item['created_at']);
+        DateTime temp_date = DateTime.parse(item['created_at']);
         int mood = item['mood'] as int;
 
         
@@ -270,7 +271,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         }
         else 
         {
-          moodAverages[temp_date.day-1] = (sum/counter).toInt();
+          moodAverages[current_date.day] = (sum/counter).toInt();
           sum = mood;
           counter = 1;
           current_date = temp_date;
