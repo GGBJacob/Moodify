@@ -5,6 +5,7 @@ import 'package:moodify/src/components/PageTemplate.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../services/NotesService.dart';
 import 'NoteDetailsPage.dart';
+import '../utils/DateManipulations.dart';
 
 class CalendarPage extends StatefulWidget {
 
@@ -68,38 +69,10 @@ class _CalendarPageState extends State<CalendarPage>{
     
     setState(() {
       dailyAverageMood = summary;
-      notes = groupNotesByDate(notes_for_month);
+      notes = NotesService.instance.groupNotesByDate(notes_for_month);
       //selected_notes = [];
       selected_notes = getNotesForDay(focused_day);
       selected_notes.sort((a, b) => DateTime.parse(a['created_at']).compareTo(DateTime.parse(b['created_at'])));});
-  }
-
-  int getHashCode(DateTime key) {
-    return key.day * 1000000 + key.month * 10000 + key.year;
-  }
-
-  Map<DateTime, List<Map<String, dynamic>>> groupNotesByDate(List<Map<String, dynamic>> notesList) {
-
-    final Map<DateTime, List<Map<String, dynamic>>> groupedNotes = LinkedHashMap(
-      equals: isSameDay,
-      hashCode: getHashCode,
-    );
-
-    for (var note in notesList) {
-      final createdAt = DateTime.parse(note['created_at']).toLocal();
-
-      final timeOnly = '${createdAt.hour.toString()}:${createdAt.minute.toString().padLeft(2, '0')}';
-      note['time'] = timeOnly;
-
-      final dateOnly = DateTime(createdAt.year, createdAt.month, createdAt.day);
-
-      if (!groupedNotes.containsKey(dateOnly)) {
-        groupedNotes[dateOnly] = [];
-      }
-      groupedNotes[dateOnly]!.add(note);
-    }
-
-    return groupedNotes;
   }
 
   void selectedDay(DateTime day, DateTime focus){
@@ -116,40 +89,6 @@ class _CalendarPageState extends State<CalendarPage>{
       return notes[day] ?? [];
     }
 
-  String monthToString(int month) {
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-    return months[month - 1];
-  }
-
-  String ?getDateEnding(int day)
-  {
-    String ending = '';
-    if((day >= 4 && day <=20) || (day>=24 && day <=30))
-    {
-      ending = 'th';
-    }
-    else if(day == 1 || day == 21 || day == 31)
-    {
-      ending = 'st';
-    }
-    else if(day == 2 || day == 22)
-    {
-      ending = 'nd';
-    }
-    else
-    {
-      ending = 'rd';
-    }
-
-    return ending;
-  }
-
-  String noteDate(DateTime selected_day)
-  {
-    return '${selected_day.day}${getDateEnding(selected_day.day)} ${monthToString(selected_day.month)} ${selected_day.year}';
-  }
-
   @override
   Widget build(BuildContext context) {
     return PageTemplate(
@@ -159,8 +98,6 @@ class _CalendarPageState extends State<CalendarPage>{
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              // SizedBox(height: 20),
-              // Text(style: TextStyle(fontSize: 45), 'Calendar'),
               SizedBox(height: 10),
               Container(
                 height: 493,

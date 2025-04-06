@@ -1,6 +1,8 @@
+import 'dart:collection';
 import 'dart:developer';
 import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'UserService.dart';
 import 'package:moodify/src/services/MentalService.dart';
 
@@ -120,6 +122,34 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       log("Error while fetching user's notes: $e");
       return [];
     }
+  }
+
+  int getHashCode(DateTime key) {
+    return key.day * 1000000 + key.month * 10000 + key.year;
+  }
+
+  Map<DateTime, List<Map<String, dynamic>>> groupNotesByDate(List<Map<String, dynamic>> notesList) {
+
+    final Map<DateTime, List<Map<String, dynamic>>> groupedNotes = LinkedHashMap(
+      equals: isSameDay,
+      hashCode: getHashCode,
+    );
+
+    for (var note in notesList) {
+      final createdAt = DateTime.parse(note['created_at']).toLocal();
+
+      final timeOnly = '${createdAt.hour.toString()}:${createdAt.minute.toString().padLeft(2, '0')}';
+      note['time'] = timeOnly;
+
+      final dateOnly = DateTime(createdAt.year, createdAt.month, createdAt.day);
+
+      if (!groupedNotes.containsKey(dateOnly)) {
+        groupedNotes[dateOnly] = [];
+      }
+      groupedNotes[dateOnly]!.add(note);
+    }
+
+    return groupedNotes;
   }
 
   Future<List<Map<String, dynamic>>> fetchTestResults(DateTime startDate, DateTime endDate) async {
