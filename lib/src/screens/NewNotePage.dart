@@ -90,7 +90,7 @@ class _NewNotePageState extends State<NewNotePage>
                         children: [
                           //Date
                           Text(style: TextStyle(fontSize: 30),
-                              '${monthToString(_now.month-1)} ${_now.day}${getDateEnding(_now.day)},  ${_now.year}'),
+                              '${monthToString(_now.month)} ${_now.day}${getDateEnding(_now.day)},  ${_now.year}'),
                           SizedBox(height:20),
 
                           //Mood

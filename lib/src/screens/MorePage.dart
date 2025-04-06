@@ -79,6 +79,32 @@ class _MorePageState extends State<MorePage> {
     );
   }
 
+  Widget _predictionButton(context) {
+    return _expandedButtonTile(
+      onPressed: () 
+      {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TestPage()),
+        );
+      },
+      text: "Crisis prediction"
+    );
+  }
+
+  Widget _relaxationButton(context) {
+    return _expandedButtonTile(
+      onPressed: () 
+      {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const TestPage()),
+        );
+      },
+      text: "How to relax"
+    );
+  }
+
 
  Widget _blockWithTitleAndButtons(context) {
     return CustomBlock(
@@ -88,6 +114,10 @@ class _MorePageState extends State<MorePage> {
           PageTemplate.buildPageTitle("First aid"), 
           const SizedBox(height: 10), // break between elements
           _testButton(context),
+          const SizedBox(height: 10),
+          _predictionButton(context),
+          const SizedBox(height: 10),
+          _relaxationButton(context)
         ],
       ),
     );
