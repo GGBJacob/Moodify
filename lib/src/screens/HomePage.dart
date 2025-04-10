@@ -1,104 +1,125 @@
-import 'package:flutter/material.dart';
-import 'package:moodify/src/components/CustomBlock.dart';
-import 'package:moodify/src/components/PageTemplate.dart';
-import 'package:moodify/src/services/NotesService.dart';
-import '../services/TrendAnalysis.dart';
-import '../utils/Pair.dart';
+  import 'package:flutter/material.dart';
+  import 'package:moodify/src/components/CustomBlock.dart';
+  import 'package:moodify/src/components/PageTemplate.dart';
+  import 'package:moodify/src/services/NotesService.dart';
+  import '../services/TrendAnalysis.dart';
+  import '../utils/Pair.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  class HomePage extends StatefulWidget {
+    const HomePage({super.key});
 
-  @override
-  State<HomePage> createState() => _HomePageState();
+    @override
+    State<HomePage> createState() => _HomePageState();
 
-}
-
-class _HomePageState extends State<HomePage>
-{
-  List<Map<String, dynamic>>? weekSummary;
-
-  @override
-  void initState() {
-    _loadData();
-    super.initState();
   }
 
-  Future<void> _loadData() async {
-    final summary = await NotesService.instance.fetchWeekSummary();
-    setState(() {
-      weekSummary = summary; // Update state to trigger rebuild
-    });
-  }
-
-  // Page building method
-  @override
- Widget build(BuildContext context) {
-  return Scaffold(
-    backgroundColor: Colors.grey[200],
-    body: Center(
-      child: Column(
-        children: [
-          SizedBox(height: MediaQuery.of(context).padding.top),
-          Expanded(
-            child: Scrollbar( 
-              thumbVisibility: false, 
-              child: SingleChildScrollView( 
-                child:
-                  Center(
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 20),
-                      _firstBlock(),
-                      const SizedBox(height: 20),
-                      _moodsBlock(),
-                      const SizedBox(height: 20),
-                      _emotionsBlock(),
-                      const SizedBox(height: 20),
-                      _activitiesBlock(),
-                      const SizedBox(height: 20),
-                      _fifthBlock(),
-                      PageTemplate.buildBottomSpacing(context)
-                    ],
-                    ),
-                  ),
-                ),
-              )
-          ),
-        ],
-      ),
-    )
-  );
-}
-
-  Widget _firstBlock()
+  class _HomePageState extends State<HomePage>
   {
-    return CustomBlock(
-        child: Column(
-            children: [
-              Text(style: TextStyle(fontSize: 45),'Your week: 0 %'),
-              Icon(Icons.sentiment_satisfied, size:150, color: Colors.cyan),
-            ]
-        )
-    );
-  }
+    List<Map<String, dynamic>>? weekSummary;
+    bool isSummaryLoading = true;
 
-  Widget _moodsBlock()
-  {
-    Widget moodCounts = Text("Loading...");
-
-    if (weekSummary != null && weekSummary!.isNotEmpty) {
-      moodCounts = _moodsChart();
+    @override
+    void initState() {
+      _loadData();
+      NotesService.instance.updates.listen((_) {
+        setState(() {
+          isSummaryLoading = true;
+        });
+        _loadData();
+      });
+      super.initState();
     }
 
-    return CustomBlock(
+    Future<void> _loadData() async {
+      final summary = await NotesService.instance.fetchWeekSummary();
+      await Future.delayed(const Duration(milliseconds: 500)); //Wait for a while so the loading is visible
+      setState(() {
+        weekSummary = summary; // Update state to trigger rebuild
+        isSummaryLoading = false;
+      });
+    }
+
+    // Page building method
+    @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.grey[200],
+      body: Center(
         child: Column(
-            children: [
-              Text(style: TextStyle(fontSize: 30),'Moods:'),
-              moodCounts
-            ]
-        )
+          children: [
+            SizedBox(height: MediaQuery.of(context).padding.top),
+            Expanded(
+              child: Scrollbar( 
+                thumbVisibility: false, 
+                child: SingleChildScrollView( 
+                  child:
+                    Center(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 20),
+                        _firstBlock(),
+                        const SizedBox(height: 20),
+                        _moodsBlock(),
+                        const SizedBox(height: 20),
+                        _emotionsBlock(),
+                        const SizedBox(height: 20),
+                        _activitiesBlock(),
+                        const SizedBox(height: 20),
+                        _fifthBlock(),
+                        PageTemplate.buildBottomSpacing(context)
+                      ],
+                      ),
+                    ),
+                  ),
+                )
+            ),
+          ],
+        ),
+      )
     );
   }
+
+    Widget _firstBlock()
+    {
+      return CustomBlock(
+          child: Column(
+              children: [
+                Text(style: TextStyle(fontSize: 45),'Your week: 0 %'),
+                Icon(Icons.sentiment_satisfied, size:150, color: Colors.cyan),
+              ]
+          )
+      );
+    }
+
+    Widget _moodsBlock()
+    {
+      Widget moodCounts = Text("Loading...");
+
+      if (!isSummaryLoading) {
+        final moodsData = weekSummary!.firstWhere(
+          (item) => item['type'] == 'moods',
+          orElse: () => {'data': []}) ['data'] as List<Map<String, dynamic>>;
+          moodCounts = moodsData.isEmpty ? 
+          Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: 5,
+              children: [
+                Icon(Icons.sentiment_very_dissatisfied_outlined),
+                Text("No moods found!")
+              ]
+            ) :
+          moodCounts = _moodsChart();
+      }
+
+      return CustomBlock(
+          child: Column(
+              children: [
+                Text(style: TextStyle(fontSize: 30),'Moods:'),
+                moodCounts
+              ]
+          )
+      );
+    }
 
   Widget _moodsChart()
   {
@@ -188,134 +209,134 @@ class _HomePageState extends State<HomePage>
         })));
   }
 
-  Widget _emotionsBlock()
-  {
-    Widget fetchedEmotions = Text("Loading...");
+    Widget _emotionsBlock()
+    {
+      Widget fetchedEmotions = Text("Loading...");
 
-    if (weekSummary != null && weekSummary!.isNotEmpty) {
-      final emotionsData = weekSummary!.firstWhere(
-        (item) => item['type'] == 'emotions',
-        orElse: () => {'data': []},
-      )['data'] as List<Map<String, dynamic>>;
-        fetchedEmotions = emotionsData.isNotEmpty
-          ? Text(emotionsData.map((e) => e['name']).join(', '))
-          : Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            spacing: 5,
-            children: [
-              Icon(Icons.sentiment_very_dissatisfied_outlined),
-              Text("No emotions found!")
-            ]
-          );
+      if (!isSummaryLoading && weekSummary != null && weekSummary!.isNotEmpty) {
+        final emotionsData = weekSummary!.firstWhere(
+          (item) => item['type'] == 'emotions',
+          orElse: () => {'data': []},
+        )['data'] as List<Map<String, dynamic>>;
+          fetchedEmotions = emotionsData.isNotEmpty && !isSummaryLoading
+            ? Text(emotionsData.map((e) => e['name']).join(', '))
+            : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: 5,
+              children: [
+                Icon(Icons.sentiment_very_dissatisfied_outlined),
+                Text("No emotions found!")
+              ]
+            );
+      }
+
+      return CustomBlock(
+          child: Column(
+              children: [
+                Text(style: TextStyle(fontSize: 30),'Emotions:'),
+                fetchedEmotions
+              ]
+          )
+      );
     }
 
-    return CustomBlock(
-        child: Column(
-            children: [
-              Text(style: TextStyle(fontSize: 30),'Emotions:'),
-              fetchedEmotions
-            ]
-        )
-    );
-  }
+    Widget _activitiesBlock()
+    {
 
-  Widget _activitiesBlock()
-  {
+      Widget fetchedActivities = Text("Loading...");
 
-    Widget fetchedActivities = Text("Loading...");
+      if (!isSummaryLoading && weekSummary != null && weekSummary!.isNotEmpty) {
+        final activitiesData = weekSummary!.firstWhere(
+          (item) => item['type'] == 'activities',
+          orElse: () => {'data': []},
+        )['data'] as List<Map<String, dynamic>>;
+          fetchedActivities = activitiesData.isNotEmpty
+            ? Text(activitiesData.map((e) => e['name']).join(', '))
+            : Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              spacing: 5,
+              children: [
+                Icon(Icons.sentiment_very_dissatisfied_outlined),
+                Text("No activities found!")
+              ]
+            );
+      }
 
-    if (weekSummary != null && weekSummary!.isNotEmpty) {
-      final activitiesData = weekSummary!.firstWhere(
-        (item) => item['type'] == 'activities',
-        orElse: () => {'data': []},
-      )['data'] as List<Map<String, dynamic>>;
-        fetchedActivities = activitiesData.isNotEmpty
-          ? Text(activitiesData.map((e) => e['name']).join(', '))
-          : Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            spacing: 5,
-            children: [
-              Icon(Icons.sentiment_very_dissatisfied_outlined),
-              Text("No activities found!")
-            ]
-          );
+      return CustomBlock(
+          child: Column(
+              children: [
+                Text(style: TextStyle(fontSize: 30),'Activities:'),
+                fetchedActivities
+              ]
+          )
+      );
     }
 
-    return CustomBlock(
-        child: Column(
-            children: [
-              Text(style: TextStyle(fontSize: 30),'Activities:'),
-              fetchedActivities
-            ]
-        )
-    );
-  }
-
-Widget _fifthBlock() {
-  return FutureBuilder<List<Pair<String, double>>>(
-    //UserService.instance.user_id!
-    future: CrisisPredictionService.instance.dailyRisksPercents('c61f53e4-4783-4706-bbd1-891c876e414a'),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return Center(child: CircularProgressIndicator());
-      } else if (snapshot.hasError) {
-        return Center(child: Text("Error: ${snapshot.error}"));
-      } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-        return Center(child: Text("No data available"));
-      } else {
-  List<Pair<String, double>> risks = snapshot.data!;
-  
-        return CustomBlock(
-          child: Table(
-            children: [
-              TableRow(
-                children: [
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Health Metric", 
-                        style: TextStyle(fontWeight: FontWeight.bold)
-                      ),
-                    ),
-                  ),
-                  Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "Risk Value [%]", 
-                        style: TextStyle(fontWeight: FontWeight.bold)
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              // Data Rows
-              ...List<TableRow>.generate(
-                risks.length - 1, // -1 to not display last row - health
-                (int index) => TableRow(
+  Widget _fifthBlock() {
+    return FutureBuilder<List<Pair<String, double>>>(
+      //UserService.instance.user_id!
+      future: CrisisPredictionService.instance.dailyRisksPercents('c61f53e4-4783-4706-bbd1-891c876e414a'),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text("Error: ${snapshot.error}"));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text("No data available"));
+        } else {
+    List<Pair<String, double>> risks = snapshot.data!;
+    
+          return CustomBlock(
+            child: Table(
+              children: [
+                TableRow(
                   children: [
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text(risks[index].getFirst()),
+                        child: Text(
+                          "Health Metric", 
+                          style: TextStyle(fontWeight: FontWeight.bold)
+                        ),
                       ),
                     ),
                     Center(
                       child: Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Text(risks[index].getSecond().toStringAsFixed(2)),
+                        child: Text(
+                          "Risk Value [%]", 
+                          style: TextStyle(fontWeight: FontWeight.bold)
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-            ],
-          ),
-        );
-      }
-    },
-  );
-}
-  
-}
+                // Data Rows
+                ...List<TableRow>.generate(
+                  risks.length - 1, // -1 to not display last row - health
+                  (int index) => TableRow(
+                    children: [
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(risks[index].getFirst()),
+                        ),
+                      ),
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Text(risks[index].getSecond().toStringAsFixed(2)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+      },
+    );
+  }
+    
+  }

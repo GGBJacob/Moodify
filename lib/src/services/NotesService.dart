@@ -1,6 +1,8 @@
+import 'dart:collection';
 import 'dart:developer';
-
+import 'dart:async';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:table_calendar/table_calendar.dart';
 import 'UserService.dart';
 import 'package:moodify/src/services/MentalService.dart';
 
@@ -9,6 +11,10 @@ class NotesService {
   NotesService._privateConstructor();
 
   static final NotesService _instance = NotesService._privateConstructor();
+
+  final StreamController<void> _updateController = StreamController.broadcast(); //notifier
+
+  Stream<void> get updates => _updateController.stream;
 
   static NotesService get instance => _instance;
 
@@ -86,7 +92,10 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         return {'activity_id': activity, 'note_id': noteId};
       }).toList());
     log("Added activities $activities to note $noteId");
-    }
+
+    _updateController.add(null); //notify calendar
+    
+  }
 
   Future<List<Map<String, dynamic>>> fetchNotes(DateTime startDate, DateTime endDate) async {
     String user_id = UserService.instance.user_id;
@@ -100,7 +109,8 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         created_at,
         mood,
         notes_emotions(emotions(emotion_name)),
-        notes_activities(activities(activity_name))
+        notes_activities(activities(activity_name)),
+        note
     ''')
           .eq('user_id', user_id)
           .gte('created_at', startDate.toIso8601String())
@@ -112,6 +122,34 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       log("Error while fetching user's notes: $e");
       return [];
     }
+  }
+
+  int getHashCode(DateTime key) {
+    return key.day * 1000000 + key.month * 10000 + key.year;
+  }
+
+  Map<DateTime, List<Map<String, dynamic>>> groupNotesByDate(List<Map<String, dynamic>> notesList) {
+
+    final Map<DateTime, List<Map<String, dynamic>>> groupedNotes = LinkedHashMap(
+      equals: isSameDay,
+      hashCode: getHashCode,
+    );
+
+    for (var note in notesList) {
+      final createdAt = DateTime.parse(note['created_at']).toLocal();
+
+      final timeOnly = '${createdAt.hour.toString()}:${createdAt.minute.toString().padLeft(2, '0')}';
+      note['time'] = timeOnly;
+
+      final dateOnly = DateTime(createdAt.year, createdAt.month, createdAt.day);
+
+      if (!groupedNotes.containsKey(dateOnly)) {
+        groupedNotes[dateOnly] = [];
+      }
+      groupedNotes[dateOnly]!.add(note);
+    }
+
+    return groupedNotes;
   }
 
   Future<List<Map<String, dynamic>>> fetchTestResults(DateTime startDate, DateTime endDate) async {
@@ -216,6 +254,67 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
     } catch (e) {
       log("Error fetching week summary: $e");
       return [];
+    }
+  }
+
+  
+  Future<Map<int, int>> fetchAndCountMonthMoods(DateTime date) async
+  {
+    try {
+    DateTime now = DateTime.now();
+
+    DateTime startOfMonth = DateTime(date.year, date.month, 1);
+
+    DateTime endOfMonth = DateTime(date.year, date.month + 1, 0); //"zero" day is last day of moth
+
+    if (endOfMonth.isAfter(now))
+    {
+      endOfMonth = now;
+    }
+
+    String userId = UserService.instance.user_id;
+
+    final response = await Supabase.instance.client
+          .from('notes')
+          .select('mood, created_at')
+          .eq('user_id', userId)
+          .gte('created_at', startOfMonth.toIso8601String())
+          .lte('created_at', endOfMonth.toIso8601String())
+          .order('created_at', ascending: true);
+
+
+      Map<int, int> moodAverages = {}; 
+      DateTime current_date = DateTime.parse(response.first['created_at']);
+
+      int counter = 0;
+      int sum = 0;
+      for (var item in response) {
+        
+        DateTime temp_date = DateTime.parse(item['created_at']);
+        int mood = item['mood'] as int;
+
+        
+        if(temp_date.day == current_date.day)
+        {
+          sum += mood;
+          counter++;
+        }
+        else 
+        {
+          moodAverages[current_date.day] = (sum/counter).toInt();
+          sum = mood;
+          counter = 1;
+          current_date = temp_date;
+        }
+        
+      }
+
+      moodAverages[current_date.day] = (sum/counter).toInt();
+
+    return  moodAverages;
+    } catch (e) {
+      log("Error fetching monthly moods: $e");
+      return {};
     }
   }
 }
