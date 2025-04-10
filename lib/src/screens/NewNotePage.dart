@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
 import '../services/NotesService.dart';
-
+import '../utils/DateManipulations.dart';
 
 class NewNotePage extends StatefulWidget {
   const NewNotePage({super.key});
@@ -15,20 +15,6 @@ class _NewNotePageState extends State<NewNotePage>
 {
   //Time 
   final DateTime _now = DateTime.now();
-  final List<String> _months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-  ];
 
   //Moods
   int? _selectedMood;
@@ -76,17 +62,20 @@ class _NewNotePageState extends State<NewNotePage>
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       backgroundColor: Colors.grey[200],
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pop(context),
-        child: Icon(Icons.arrow_back),
-        foregroundColor: Colors.black,
-        backgroundColor: Colors.white,
-        heroTag: "return", 
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text('New note'), 
       ),
-      body: Center(
-        child: SingleChildScrollView(
+      body:
+        SingleChildScrollView(
+          child: Align(alignment: Alignment.topCenter,
           child:  Column(
             children: [
           SizedBox(height:20),
@@ -100,27 +89,27 @@ class _NewNotePageState extends State<NewNotePage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           //Date
-                          Text(style: TextStyle(fontSize: 45),
-                              '${_months[_now.month-1]} ${_now.day},  ${_now.year}'),
+                          Text(style: TextStyle(fontSize: 30),
+                              '${monthToString(_now.month)} ${_now.day}${getDateEnding(_now.day)},  ${_now.year}'),
                           SizedBox(height:20),
 
                           //Mood
-                          Text(style: TextStyle(fontSize: 30),'Mood:'),
+                          Text(style: TextStyle(fontSize: 20),'Mood:'),
                           _moodsBlock(),
                           SizedBox(height:20),
 
                           //Emotions
-                          Text(style: TextStyle(fontSize: 30),'Emotions:'),
+                          Text(style: TextStyle(fontSize: 20),'Emotions:'),
                           _interactiveList(_selectedEmotions ,_emotions, () => _openInteractiveDialog("Emotions", _emotions, _selectedEmotions)), // Passing interactive dialog as reference
                           SizedBox(height:20),
 
                           //Activities
-                          Text(style: TextStyle(fontSize: 30),'Activities:'),
+                          Text(style: TextStyle(fontSize: 20),'Activities:'),
                           _interactiveList(_selectedActivities ,_activities, () => _openInteractiveDialog("Activities", _activities, _selectedActivities)), // Passing interactive dialog as reference
                           SizedBox(height:20),
 
                           //Note
-                          Text(style: TextStyle(fontSize: 30),'Note:'),
+                          Text(style: TextStyle(fontSize: 20),'Note:'),
                           TextFormField(
                             decoration: InputDecoration(labelText: "How was your day?",
                               border: OutlineInputBorder()),
@@ -164,8 +153,8 @@ class _NewNotePageState extends State<NewNotePage>
               SizedBox(height:20)]
       ),
       )
-      )
-    );
+        ),
+      );
   }
 
   Widget _moodsBlock() {
@@ -207,7 +196,7 @@ class _NewNotePageState extends State<NewNotePage>
                 ...filteredElements.map(
                   (element) => Chip(
                     label: Text(element['name']),
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Color(0xFF8C4A60),
                     labelStyle: TextStyle(color: Colors.white),
                   ),
                 ),
@@ -252,7 +241,7 @@ class _NewNotePageState extends State<NewNotePage>
                 child: Chip(
                   label: Text(element['name']),
                   backgroundColor:
-                  isSelected ? Colors.blue : Colors.grey[300],
+                  isSelected ? Color(0xFF8C4A60) : Colors.grey[300],
                   labelStyle: TextStyle(
                     color: isSelected ? Colors.white : Colors.black,
                   ),
