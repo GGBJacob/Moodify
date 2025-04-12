@@ -322,14 +322,14 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
     }
   }
 
-  Future<void> addUserToStreaks() async {
+  Future<void> addUserToStreaks(String uuid) async {
     try{
-      final response = await supabase
+      await supabase
           .from('streaks')
           .insert([
-            {'user_id': UserService.instance.user_id, 'streak': 0, 'last_time_active': null}
+            {'user_id': uuid, 'streak': 0, 'last_time_active': null}
           ]);
-      log("Added user to streaks: $response");
+      log("Added user to streaks");
     } catch(e) {
       log("Error adding user to streaks: $e");
     }
@@ -362,15 +362,43 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
 
   Future<int> loadStreak() async{
     try{
+      if (UserService.instance.userInitCompleter != null && !UserService.instance.userInitCompleter!.isCompleted) {
+        await UserService.instance.userInitCompleter!.future;
+      }
       final response = await supabase
           .from('streaks')
-          .select('streak')
+          .select('streak, last_time_active')
           .eq('user_id', UserService.instance.user_id);
-      log("Loaded streak: ${response[0]['streak']}");
+      log("Loaded streak: ${response[0]['streak']??0}");
+      
+      if (response[0]['last_time_active'] == null) {
+        return response[0]['streak'];
+      }
+      
+      DateTime lastActive = DateTime.parse(response[0]['last_time_active']);
+      if (DateTime.now().toUtc().difference(lastActive.toUtc()).inDays > 1)
+      {
+        _resetStreak();
+        return 0;
+      }
       return response[0]['streak'];
     } catch(e) {
       log("Error loading streak: $e");
       return -1;
+    }
+  }
+
+  Future<void> _resetStreak() async{
+    try{
+      final response = await supabase
+          .from('streaks')
+          .update({'streak': 0})
+          .eq('user_id', UserService.instance.user_id);
+      log("Streak reset!");
+      
+      return response[0]['streak'];
+    } catch(e) {
+      log("Error resetting streak: $e");
     }
   }
 }

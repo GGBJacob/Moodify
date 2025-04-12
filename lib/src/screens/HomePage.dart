@@ -102,7 +102,7 @@
     {
       Widget streakText;
       if (streak == null) {streakText = Text("Loading streak...");}
-      else if (streak == -1) {streakText = Row(mainAxisAlignment: MainAxisAlignment.center, children:[Text("Error"), Icon(Icons.sentiment_very_dissatisfied_rounded, color: Colors.red)]);}
+      else if (streak == -1) {streakText = Row(mainAxisAlignment: MainAxisAlignment.center, spacing:5, children:[Text("Error loading streak"), Icon(Icons.sentiment_very_dissatisfied_rounded, color: Colors.red, size: 20)]);}
       else {streakText = Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children:[
@@ -127,18 +127,16 @@
       return CustomBlock(
           child: Column(
               children: [
-                Text(style: TextStyle(fontSize: 45),'Your week:'),
+                Icon(Icons.sentiment_satisfied, size:150, color: Colors.cyan),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children:[
                     Text(style: TextStyle(fontSize: 20), 'Mood trend: ${moodTrend}%'),
                     moodTrend > 0 ? 
                       Icon(Icons.keyboard_double_arrow_up_rounded, color: Colors.green) 
-                        : moodTrend < 0 ? Icon(Icons.keyboard_double_arrow_down_rounded, color: Colors.red) 
-                        : Icon(Icons.compare_arrows, color: Colors.grey)
+                        : moodTrend < 0 ? Icon(Icons.keyboard_double_arrow_down_rounded, color: Colors.red) : SizedBox.shrink(),
                     ]
                   ),
-                Icon(Icons.sentiment_satisfied, size:150, color: Colors.cyan),
               ]
           )
       );

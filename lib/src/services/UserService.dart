@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer';
 
 import 'package:moodify/src/services/DatabaseService.dart';
@@ -24,18 +25,23 @@ class UserService {
     user_id = await getOrGenerateUserId();
   }
 
+  Completer<void>? userInitCompleter;
   Future<String> getOrGenerateUserId() async {
     final prefs = await SharedPreferences.getInstance();
     
     String? storedUserId = prefs.getString('user_id');
     
     if (storedUserId == null) {
+      userInitCompleter = Completer<void>();
       // If no user id was found, generate one
       var uuid = Uuid();
       storedUserId = uuid.v4();
+      await DatabaseService.instance.addUserToStreaks(storedUserId);
       await prefs.setString('user_id', storedUserId); // Save UUID in memory
-      DatabaseService.instance.addUserToStreaks();
+      user_id = storedUserId;
+      userInitCompleter!.complete();
     }
+
 
     // Rerurn and save UUID
     user_id = storedUserId;
