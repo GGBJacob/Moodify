@@ -1,5 +1,6 @@
 import 'dart:developer';
 
+import 'package:moodify/src/services/DatabaseService.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -33,6 +34,7 @@ class UserService {
       var uuid = Uuid();
       storedUserId = uuid.v4();
       await prefs.setString('user_id', storedUserId); // Save UUID in memory
+      DatabaseService.instance.addUserToStreaks();
     }
 
     // Rerurn and save UUID

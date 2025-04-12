@@ -1,26 +1,31 @@
 import 'dart:collection';
 import 'dart:developer';
 import 'dart:async';
+import 'package:moodify/src/models/NotesSummary.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'UserService.dart';
 import 'package:moodify/src/services/MentalService.dart';
 
-class NotesService {
+class DatabaseService {
 
-  NotesService._privateConstructor();
+  DatabaseService._privateConstructor();
 
-  static final NotesService _instance = NotesService._privateConstructor();
+  static final DatabaseService _instance = DatabaseService._privateConstructor();
 
   final StreamController<void> _updateController = StreamController.broadcast(); //notifier
 
   Stream<void> get updates => _updateController.stream;
 
-  static NotesService get instance => _instance;
+  static DatabaseService get instance => _instance;
 
   final SupabaseClient supabase = Supabase.instance.client;
 
   final MentalService ms = MentalService();
+
+  bool streakActive = false;
+  bool streakLoading = false;
+  int? streakValue;
 
   Future<List<Map<String, dynamic>>> fetchActivities() async {
   try {
@@ -59,42 +64,55 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
   }
 
 
-  Future<void> saveNote(int mood, List<int> emotions, List<int> activities, String note) async
+  Future<int?> saveNote(int mood, List<int> emotions, List<int> activities, String note) async
   {
-    final List<double> scores = await ms.assess(note);
-    // Insert to notes table
-    final notesResponse = await supabase
-    .from('notes')
-    .insert([
-      { 'user_id': UserService.instance.user_id, 'mood': mood, 'note':note, 'scores': scores },
-    ])
-    .select();
+    try{
+      final List<double> scores = await ms.assess(note);
+      // Insert to notes table
+      final notesResponse = await supabase
+      .from('notes')
+      .insert([
+        { 'user_id': UserService.instance.user_id, 'mood': mood, 'note':note, 'scores': scores },
+      ])
+      .select();
 
-    int noteId = notesResponse[0]['id'];
+      int noteId = notesResponse[0]['id'];
 
-    log("Added note $noteId!");
+      log("Added note $noteId!");
 
-
-    // Insert to notes_emotions
-    await supabase
-    .from('notes_emotions')
-    .insert(emotions.map((emotion)
-    {
-      return {'emotion_id': emotion, 'note_id': noteId};
-    }).toList());
-
-    log("Added emotions $emotions to note $noteId");
-    // Insert to notes_activities
-      await supabase
-      .from('notes_activities')
-      .insert(activities.map((activity)
+       if (!streakActive)
       {
-        return {'activity_id': activity, 'note_id': noteId};
-      }).toList());
-    log("Added activities $activities to note $noteId");
+        streakLoading = true;
+        _updateStreak();
+        streakActive = true;
+      }
 
-    _updateController.add(null); //notify calendar
-    
+      _updateController.add(null); //notify calendar
+
+      // Insert to notes_emotions
+      await supabase
+      .from('notes_emotions')
+      .insert(emotions.map((emotion)
+      {
+        return {'emotion_id': emotion, 'note_id': noteId};
+      }).toList());
+
+      log("Added emotions $emotions to note $noteId");
+      // Insert to notes_activities
+      await supabase
+        .from('notes_activities')
+        .insert(activities.map((activity)
+        {
+          return {'activity_id': activity, 'note_id': noteId};
+        }).toList());
+      log("Added activities $activities to note $noteId");
+      
+      return noteId;
+    }
+    catch(e){
+      log("Error while saving note: $e");
+      return null;
+    }
   }
 
   Future<List<Map<String, dynamic>>> fetchNotes(DateTime startDate, DateTime endDate) async {
@@ -173,87 +191,73 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
     }
   }
 
-  Future<Map<String, dynamic>> _fetchAndCountWeeklyElements(
-      String? linkingTable,
-      String dataTable,
-      String columnName) async
+  Future<List<Map<String, dynamic>>> _fetchWeeklyNoteDetails(
+      DateTime startOfWeek,
+      DateTime endOfWeek) async
   {
     try {
-    DateTime now = DateTime.now();
-
-    // Calculate the start of the week (Monday)
-    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
-    startOfWeek = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
-
-    DateTime endOfWeek = now;
 
     String userId = UserService.instance.user_id;
 
     // Fetch element count for this week
-    final response = await Supabase.instance.client
+    return await Supabase.instance.client
         .from('notes')
-        .select( linkingTable != null 
-          ? '$linkingTable($dataTable($columnName))'
-          : columnName
-          )
+        .select('''
+        mood,
+        created_at,
+        notes_emotions(emotions(emotion_name)),
+        notes_activities(activities(activity_name))
+        ''')
         .eq('user_id', userId)
         .gte('created_at', startOfWeek.toIso8601String())
         .lte('created_at', endOfWeek.toIso8601String());
-
-    Map<dynamic, int> countsMap = {};
-
-    // Count elements
-    for (var item in response)
+    }catch(e)
     {
-      if (linkingTable != null) {
-        var names = item[linkingTable];
-        for (var element in names)
-        {
-          String name = element[dataTable][columnName] as String;
-          countsMap[name] = (countsMap[name] ?? 0) + 1;
-        }
-      }
-      else
-      {
-        int mood = item[columnName] as int;
-        countsMap[mood] = (countsMap[mood] ?? 0) + 1;
-      }
-      
-    }
-
-    
-    List<Map<String, dynamic>> sortedList = countsMap.entries
-    .map((entry) => {'name': entry.key, 'count': entry.value})
-    .toList();
-
-    // Sort elements
-    if (linkingTable != null)
-    {
-      sortedList.sort((a, b) => (b['count'] as int).compareTo(a['count'] as int));
-    }
-    // Sort moods by value, not count
-    else{
-      sortedList.sort((a, b) => (b['name'] as int).compareTo(a['name'] as int));
-    }
-    return {'type': dataTable, 'data': sortedList};
-
-    } catch (e) {
       log("Error fetching week summary: $e");
-      return {};
+      return [];
     }
   }
 
 
-  Future<List<Map<String, dynamic>>> fetchWeekSummary() async {
+  Future<NotesSummary> fetchWeekSummary() async {
+    DateTime now = DateTime.now();
+    // Calculate the start of the week (Monday)
+    DateTime startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    startOfWeek = DateTime(startOfWeek.year, startOfWeek.month, startOfWeek.day);
+    DateTime endOfWeek = now;
     try {
-      return [
-        await _fetchAndCountWeeklyElements('notes_emotions','emotions','emotion_name'),
-        await _fetchAndCountWeeklyElements('notes_activities','activities','activity_name'),
-        await _fetchAndCountWeeklyElements(null,'moods', 'mood')
-      ];
+      var rawDetails = await _fetchWeeklyNoteDetails(startOfWeek, endOfWeek);
+      NotesSummary result = NotesSummary.fromRaw(rawDetails);
+      return result;
     } catch (e) {
       log("Error fetching week summary: $e");
-      return [];
+      return NotesSummary(
+        moods: [],
+        emotions: [],
+        activities: [],
+      );
+    }
+  }
+
+  Future<NotesSummary> fetchPreviousWeekSummary() async
+  {
+    DateTime now = DateTime.now();
+    DateTime endOfWeek = now.subtract(Duration(days: now.weekday));
+    DateTime startOfWeek = endOfWeek.subtract(Duration(days:6));
+    
+    try{
+      var rawDetails = await _fetchWeeklyNoteDetails(startOfWeek, endOfWeek);
+      return NotesSummary.fromRaw(rawDetails);
+      // [await _fetchAndCountWeeklyElements(null, 'moods', 'mood', startOfWeek, endOfWeek)];
+    }
+    catch(e)
+    {
+      log("Error fetching previous week sumary: $e");
+      return NotesSummary(
+        moods: [],
+        emotions: [],
+        activities: [],
+      );
     }
   }
 
@@ -315,6 +319,58 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
     } catch (e) {
       log("Error fetching monthly moods: $e");
       return {};
+    }
+  }
+
+  Future<void> addUserToStreaks() async {
+    try{
+      final response = await supabase
+          .from('streaks')
+          .insert([
+            {'user_id': UserService.instance.user_id, 'streak': 0, 'last_time_active': null}
+          ]);
+      log("Added user to streaks: $response");
+    } catch(e) {
+      log("Error adding user to streaks: $e");
+    }
+  }
+  
+  Future<void> _updateStreak() async{
+    try {
+    final response = await supabase
+      .from('streaks')
+      .select('streak')
+      .eq('user_id', UserService.instance.user_id);
+
+    final updateResponse = await supabase
+        .from('streaks')
+        .update({'streak': response[0]['streak']+1, 'last_time_active': DateTime.now().toIso8601String()})
+        .eq('user_id', UserService.instance.user_id)
+        .select();
+
+    log("Updated streak for user ${UserService.instance.user_id}");
+
+    streakValue = updateResponse[0]['streak'];
+    streakLoading = false;
+  }
+    catch(e)
+    {
+      log("Error updating streak: $e");
+      streakLoading = false;
+    }
+  }
+
+  Future<int> loadStreak() async{
+    try{
+      final response = await supabase
+          .from('streaks')
+          .select('streak')
+          .eq('user_id', UserService.instance.user_id);
+      log("Loaded streak: ${response[0]['streak']}");
+      return response[0]['streak'];
+    } catch(e) {
+      log("Error loading streak: $e");
+      return -1;
     }
   }
 }

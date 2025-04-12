@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
-import '../services/NotesService.dart';
+import '../services/DatabaseService.dart';
 import '../utils/DateManipulations.dart';
 
 class NewNotePage extends StatefulWidget {
@@ -18,6 +18,7 @@ class _NewNotePageState extends State<NewNotePage>
 
   //Moods
   int? _selectedMood;
+  bool isSaving = false;
   
   final List<List<dynamic>> moodPairs = [
     [Icons.sentiment_very_dissatisfied_rounded, Color(0xFF840303)],
@@ -41,8 +42,8 @@ class _NewNotePageState extends State<NewNotePage>
 
   Future<void> _loadData() async {
     try {
-      final emotions = await NotesService.instance.fetchEmotions();
-      final activities = await NotesService.instance.fetchActivities();
+      final emotions = await DatabaseService.instance.fetchEmotions();
+      final activities = await DatabaseService.instance.fetchActivities();
       setState(() {
         _emotions = emotions;
         _activities = activities;
@@ -67,7 +68,7 @@ class _NewNotePageState extends State<NewNotePage>
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () {
+          onPressed: isSaving ? null : () {
             Navigator.pop(context);
           },
         ),
@@ -123,18 +124,13 @@ class _NewNotePageState extends State<NewNotePage>
 
                           //Save button
                           ElevatedButton(
-                              onPressed: (){
+                              onPressed: isSaving? null : (){
                                 //Note output
                                 _textFormOutput = _textController.text;
 
                                 //Validation
                                 if(_formGlobalKey.currentState!.validate() && _selectedMood!=null){
-                                  _formGlobalKey.currentState!.save();
-                                  NotesService.instance.saveNote(_selectedMood!, _selectedEmotions, _selectedActivities, _textFormOutput);
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text("Added!"), behavior: SnackBarBehavior.floating), // "floating" prevents moving of the "addNote" button
-                                  );
+                                  _handleSaveNote();
                                 }
                               },
                               style: FilledButton.styleFrom(
@@ -155,6 +151,66 @@ class _NewNotePageState extends State<NewNotePage>
       )
         ),
       );
+  }
+
+  Future<void> _handleSaveNote() async {
+    setState(() {
+      isSaving = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Row(
+        children: [
+          CircularProgressIndicator(color: Colors.white),
+          SizedBox(width: 20),
+          Text("Saving..."),
+        ],
+      ),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.blue,
+    ),
+    );
+
+    _formGlobalKey.currentState!.save();
+    
+    int? res = await DatabaseService.instance.saveNote(
+      _selectedMood!,
+      _selectedEmotions,
+      _selectedActivities,
+      _textFormOutput
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar(); 
+    if (res != null)
+    {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children:[
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 20),
+              Text("Note added!"),]),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+    else
+    {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: 
+        Row(children: [
+          Icon(Icons.close, color: Colors.white),
+          SizedBox(width: 20),
+          Text("Failed to add note!"),]),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.red,
+      ),
+    );
+    }
   }
 
   Widget _moodsBlock() {

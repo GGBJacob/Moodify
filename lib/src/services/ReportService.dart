@@ -1,7 +1,7 @@
 import 'dart:developer';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
-import 'package:moodify/src/services/NotesService.dart';
+import 'package:moodify/src/services/DatabaseService.dart';
 import 'package:moodify/src/services/TestService.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -261,10 +261,10 @@ class ReportService {
   }
 
   Future<Uint8List> generateReport() async {
-    final notesResponse = await NotesService.instance.fetchNotes(_startDate, _endDate);
+    final notesResponse = await DatabaseService.instance.fetchNotes(_startDate, _endDate);
     getCounts(notesResponse);
     sortCounts();
-    final testResultsResponse = await NotesService.instance.fetchTestResults(_startDate, _endDate);
+    final testResultsResponse = await DatabaseService.instance.fetchTestResults(_startDate, _endDate);
 
 
     final pdf = pw.Document();

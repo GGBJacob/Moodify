@@ -2,7 +2,8 @@
   import 'package:flutter/material.dart';
   import 'package:moodify/src/components/CustomBlock.dart';
   import 'package:moodify/src/components/PageTemplate.dart';
-  import 'package:moodify/src/services/NotesService.dart';
+  import 'package:moodify/src/models/NotesSummary.dart';
+  import 'package:moodify/src/services/DatabaseService.dart';
   import '../services/TrendAnalysis.dart';
   import '../utils/Pair.dart';
 
@@ -16,29 +17,44 @@
 
   class _HomePageState extends State<HomePage>
   {
-    List<Map<String, dynamic>>? weekSummary;
+    NotesSummary weekSummary = NotesSummary();
+    NotesSummary previousWeekSummary = NotesSummary();
     bool isSummaryLoading = true;
+    int? streak;
 
     @override
     void initState() {
-      _loadData();
-      NotesService.instance.updates.listen((_) {
+      _loadData(true);
+      DatabaseService.instance.updates.listen((_) {
+        if(!mounted) return;
         setState(() {
           isSummaryLoading = true;
         });
-        _loadData();
+        _loadData(false);
       });
       super.initState();
     }
 
-    Future<void> _loadData() async {
-      final summary = await NotesService.instance.fetchWeekSummary();
+
+    Future<void> _loadData(bool initialize) async {
+      if (initialize)
+      {
+        streak = await DatabaseService.instance.loadStreak();
+        previousWeekSummary = await DatabaseService.instance.fetchPreviousWeekSummary();
+      }
+      final summary = await DatabaseService.instance.fetchWeekSummary();
+      if (!summary.isEmpty)
+      {
+        DatabaseService.instance.streakActive = summary.wasUserActiveToday();
+      }
       await Future.delayed(const Duration(milliseconds: 500)); //Wait for a while so the loading is visible
       setState(() {
         weekSummary = summary; // Update state to trigger rebuild
         isSummaryLoading = false;
+        streak = initialize ? streak : DatabaseService.instance.streakValue;
       });
     }
+
 
     // Page building method
     @override
@@ -58,7 +74,9 @@
                     child: Column(
                       children: [
                         const SizedBox(height: 20),
-                        _firstBlock(),
+                        _streakBlock(),
+                        const SizedBox(height: 20),
+                        _gradeBlock(),
                         const SizedBox(height: 20),
                         _moodsBlock(),
                         const SizedBox(height: 20),
@@ -80,12 +98,46 @@
     );
   }
 
-    Widget _firstBlock()
+    Widget _streakBlock()
     {
+      Widget streakText;
+      if (streak == null) {streakText = Text("Loading streak...");}
+      else if (streak == -1) {streakText = Row(mainAxisAlignment: MainAxisAlignment.center, children:[Text("Error"), Icon(Icons.sentiment_very_dissatisfied_rounded, color: Colors.red)]);}
+      else {streakText = Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children:[
+              Text(style: TextStyle(fontSize: 30), "Streak: $streak"),
+              Icon(Icons.local_fire_department_rounded,color: DatabaseService.instance.streakActive ? 
+                Colors.orangeAccent
+                : Colors.grey, size: 40,)
+            ]);}
+      return CustomBlock(
+        child: Column(
+          children: [
+            streakText,
+          ])  
+          );
+    }
+
+    Widget _gradeBlock()
+    {
+      double previousWeekAverageMood = previousWeekSummary.averageMood();
+      double currentWeekAverageMood = weekSummary.averageMood();
+      int moodTrend = previousWeekAverageMood!=0 ? (currentWeekAverageMood/previousWeekAverageMood*100).toInt() : 0;
       return CustomBlock(
           child: Column(
               children: [
-                Text(style: TextStyle(fontSize: 45),'Your week: 0 %'),
+                Text(style: TextStyle(fontSize: 45),'Your week:'),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children:[
+                    Text(style: TextStyle(fontSize: 20), 'Mood trend: ${moodTrend}%'),
+                    moodTrend > 0 ? 
+                      Icon(Icons.keyboard_double_arrow_up_rounded, color: Colors.green) 
+                        : moodTrend < 0 ? Icon(Icons.keyboard_double_arrow_down_rounded, color: Colors.red) 
+                        : Icon(Icons.compare_arrows, color: Colors.grey)
+                    ]
+                  ),
                 Icon(Icons.sentiment_satisfied, size:150, color: Colors.cyan),
               ]
           )
@@ -97,10 +149,7 @@
       Widget moodCounts = Text("Loading...");
 
       if (!isSummaryLoading) {
-        final moodsData = weekSummary!.firstWhere(
-          (item) => item['type'] == 'moods',
-          orElse: () => {'data': []}) ['data'] as List<Map<String, dynamic>>;
-          moodCounts = moodsData.isEmpty ? 
+        weekSummary.isEmpty ? 
           Row(
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 5,
@@ -140,7 +189,7 @@
   Color(0xFFFFB3B3), 
   Color(0xFFFFC2C2), 
   Color(0xFFFFE0B2), 
-  Color(0xFFD4E157), 
+  Color(0xFFE6EE9C), 
   Color(0xFFB9F6CA),
   ];
 
@@ -159,20 +208,17 @@
   assert (activeColors.length == disabledColors.length);
   assert (disabledColors.length == faces.length);
 
-  var moods = weekSummary!.firstWhere(
-    (item) => item['type'] == 'moods',
-    orElse: () => {'data': []},
-  );
+  var moods = weekSummary.moods!;
 
   List<int> columns = [];
   List<int> moodCount = List.filled(columnCount, 0);
   int countSum = 0;
-  for (var element in moods["data"])
+  for (var element in moods)
   {
-    countSum += element["count"] as int;
-    int idx = element["name"];
+    countSum += element.second;
+    int idx = element.first;
     columns.add(idx);
-    moodCount[idx] = rowCount * element["count"] as int;
+    moodCount[idx] = rowCount * element.second;
   }
 
 
@@ -215,13 +261,10 @@
     {
       Widget fetchedEmotions = Text("Loading...");
 
-      if (!isSummaryLoading && weekSummary != null && weekSummary!.isNotEmpty) {
-        final emotionsData = weekSummary!.firstWhere(
-          (item) => item['type'] == 'emotions',
-          orElse: () => {'data': []},
-        )['data'] as List<Map<String, dynamic>>;
+      if (!isSummaryLoading && !weekSummary.isEmpty) {
+        final emotionsData = weekSummary.topEmotions(5);
           fetchedEmotions = emotionsData.isNotEmpty && !isSummaryLoading
-            ? Text(emotionsData.map((e) => e['name']).join(', '))
+            ? Text(emotionsData.map((e) => e).join(', '))
             : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 5,
@@ -247,13 +290,10 @@
 
       Widget fetchedActivities = Text("Loading...");
 
-      if (!isSummaryLoading && weekSummary != null && weekSummary!.isNotEmpty) {
-        final activitiesData = weekSummary!.firstWhere(
-          (item) => item['type'] == 'activities',
-          orElse: () => {'data': []},
-        )['data'] as List<Map<String, dynamic>>;
+      if (!isSummaryLoading && !weekSummary.isEmpty) {
+        final activitiesData = weekSummary.topActivities(5);
           fetchedActivities = activitiesData.isNotEmpty
-            ? Text(activitiesData.map((e) => e['name']).join(', '))
+            ? Text(activitiesData.map((e) => e).join(', '))
             : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 5,

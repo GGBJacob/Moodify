@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
 import 'package:moodify/src/components/PageTemplate.dart';
 import 'package:table_calendar/table_calendar.dart';
-import '../services/NotesService.dart';
+import '../services/DatabaseService.dart';
 import 'NoteDetailsPage.dart';
 import '../utils/DateManipulations.dart';
 
@@ -33,7 +33,8 @@ class _CalendarPageState extends State<CalendarPage>{
   void initState() {
     _loadData();
     super.initState();
-    NotesService.instance.updates.listen((_) {
+    DatabaseService.instance.updates.listen((_) {
+      if(!mounted) return;
       _loadData();
     });
   }
@@ -60,15 +61,15 @@ class _CalendarPageState extends State<CalendarPage>{
   } 
 
   Future<void> _loadData() async {
-    final summary = await NotesService.instance.fetchAndCountMonthMoods(focused_day);
+    final summary = await DatabaseService.instance.fetchAndCountMonthMoods(focused_day);
     
     DateTime first_day = DateTime(focused_day.year, focused_day.month, 1);
     DateTime last_day = DateTime(focused_day.year, focused_day.month + 1, 0); //"zero" day is last day of moth
-    final notes_for_month = await NotesService.instance.fetchNotes(first_day, last_day);
+    final notes_for_month = await DatabaseService.instance.fetchNotes(first_day, last_day);
     
     setState(() {
       dailyAverageMood = summary;
-      notes = NotesService.instance.groupNotesByDate(notes_for_month);
+      notes = DatabaseService.instance.groupNotesByDate(notes_for_month);
       //selected_notes = [];
       selected_notes = getNotesForDay(focused_day);
       selected_notes.sort((a, b) => DateTime.parse(a['created_at']).compareTo(DateTime.parse(b['created_at'])));});
