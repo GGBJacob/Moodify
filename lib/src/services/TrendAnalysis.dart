@@ -28,8 +28,9 @@ class CrisisPredictionService
 
   final SupabaseClient supabase = UserService.instance.supabase;
   
-  Future<List<Pair<String, double>>> calculateDailyRisks(String user_uuid) async
+  Future<List<Pair<String, double>>> calculateDailyRisks() async
   {
+    String user_uuid = await UserService.instance.getOrGenerateUserId();
     List<Pair<DateTime, List<double>>> moods = await fetchMoods(user_uuid);
     List<Pair<DateTime, List<double>>> points = await fetchPoints(user_uuid);
     List<dynamic> gathered_moods_points = connect(moods, points);
@@ -40,9 +41,9 @@ class CrisisPredictionService
     List<List<Pair<DateTime, double>>> average_scores_for_headers = calculateAverageScoresForHeaders(scores, average_moods_points, embedding_headers.length);
     return calculateRisksForHeaders(average_scores_for_headers, embedding_headers);
   }
-  Future<List<Pair<String, double>>> dailyRisksPercents(String user_uuid) async
+  Future<List<Pair<String, double>>> dailyRisksPercents() async
   {
-    List<Pair<String, double>> transformedRisks = await calculateDailyRisks(user_uuid);
+    List<Pair<String, double>> transformedRisks = await calculateDailyRisks();
     for (int i=0; i<transformedRisks.length; i++)
     {
       transformedRisks[i].setSecond(transformedRisks[i].getSecond() * 100); 
