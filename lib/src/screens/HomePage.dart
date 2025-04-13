@@ -25,6 +25,7 @@
     @override
     void initState() {
       _loadData(true);
+      _loadRisks();
       DatabaseService.instance.updates.listen((_) {
         if(!mounted) return;
         setState(() {
@@ -318,71 +319,79 @@
       );
     }
 
-  Widget _fifthBlock() {
-    return FutureBuilder<List<Pair<String, double>>>(
-      //UserService.instance.user_id!
-      future: CrisisPredictionService.instance.dailyRisksPercents('c61f53e4-4783-4706-bbd1-891c876e414a'),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text("Error: ${snapshot.error}"));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(child: Text("No data available"));
-        } else {
-    List<Pair<String, double>> risks = snapshot.data!;
-    
-          return CustomBlock(
-            child: Table(
-              children: [
-                TableRow(
-                  children: [
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          "Health Metric", 
-                          style: TextStyle(fontWeight: FontWeight.bold)
-                        ),
-                      ),
-                    ),
-                    Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: Text(
-                          "Risk Value [%]", 
-                          style: TextStyle(fontWeight: FontWeight.bold)
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-                // Data Rows
-                ...List<TableRow>.generate(
-                  risks.length - 1, // -1 to not display last row - health
-                  (int index) => TableRow(
-                    children: [
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(risks[index].getFirst()),
-                        ),
-                      ),
-                      Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Text(risks[index].getSecond().toStringAsFixed(2)),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          );
-        }
-      },
-    );
+  bool _isLoading = true;
+  List<Pair<String, double>>? _risks;
+  void _loadRisks() async {
+    setState(() => _isLoading = true);
+
+    try {
+      _risks = await CrisisPredictionService.instance.dailyRisksPercents();
+    } catch (e) {
+      print("Error loading risks: $e");
+      _risks = [];
+    }
+
+    setState(() => _isLoading = false);
   }
+
+ Widget _fifthBlock() {
+  final risks = _risks ?? [];
+
+  final sortedRisks = List<Pair<String, double>>.from(risks)
+    ..sort((a, b) => b.second.compareTo(a.second)); // sort descending
+  final topRisks = sortedRisks.take(3).toList();
+
+  return CustomBlock(
+    child: Column(
+      children:[
+        Text(
+          "Top Risk Metrics:",
+          style: TextStyle(
+            fontSize: 25,
+          ),
+        ),
+    _isLoading
+        ? Center(child: Text("Loading risks..."))
+        : risks.isEmpty
+            ? Center(child: Text("No data available"))
+            : Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  
+                  SizedBox(height: 12),
+                  ...topRisks.map((risk) {
+                    Color getColor(double value) {
+                      if (value > 75) return Colors.redAccent;
+                      if (value > 50) return Colors.orangeAccent;
+                      if (value > 25) return Colors.yellow.shade600;
+                      return Colors.green;
+                    }
+
+                    return Card(
+                      color: getColor(risk.second).withValues(alpha: 0.60),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      margin: EdgeInsets.symmetric(vertical: 6),
+                      child: ListTile(
+                        leading: Icon(Icons.warning_amber_rounded, color: getColor(risk.second)),
+                        title: Text(risk.first),
+                        trailing: Text(
+                          "${risk.second.toStringAsFixed(1)}%",
+                          
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.black87,
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+  ]));
+}
+
     
   }
