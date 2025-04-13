@@ -25,7 +25,6 @@
     @override
     void initState() {
       _loadData(true);
-      streak = DatabaseService.instance.streakValue;
       DatabaseService.instance.updates.listen((_) {
         if(!mounted) return;
         setState(() {
@@ -56,7 +55,7 @@
       });
     }
 
-
+  final ScrollController _scrollController = ScrollController();
     // Page building method
     @override
   Widget build(BuildContext context) {
@@ -67,9 +66,11 @@
           children: [
             SizedBox(height: MediaQuery.of(context).padding.top),
             Expanded(
-              child: Scrollbar( 
+              child: Scrollbar(
+                controller: _scrollController, 
                 thumbVisibility: false, 
                 child: SingleChildScrollView( 
+                  controller: _scrollController,
                   child:
                     Center(
                     child: Column(
