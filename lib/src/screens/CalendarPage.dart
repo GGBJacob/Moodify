@@ -21,8 +21,6 @@ class _CalendarPageState extends State<CalendarPage>{
 
   final List<String> flowers = ['assets/very_sad.png', 'assets/sad.png', 'assets/neutral.png', 'assets/happy.png', 'assets/very_happy.png'];
 
-  Map<int, Image> moodImages = {};
-
   Map<DateTime, List<Map<String, dynamic>>> notes = {};
 
   DateTime selected_day = DateTime.now(); //day clicked by user
@@ -39,24 +37,12 @@ class _CalendarPageState extends State<CalendarPage>{
     });
   }
 
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    _preloadImages();
-  }
-
-  void _preloadImages() {
-    for (int i = 0; i < flowers.length; i++) {
-      moodImages[i] = Image.asset(flowers[i], height: 40);
-      precacheImage(AssetImage(flowers[i]), context);
-    }
-  }
 
   Widget getMoodIconWidget(int? mood) {
     if (mood == null || mood == -1) {
       return SizedBox(height: 40); 
     } else {
-      return moodImages[mood]!; 
+      return Image.asset(flowers[mood], height: 40); 
     }
   } 
 
@@ -242,7 +228,7 @@ class _CalendarPageState extends State<CalendarPage>{
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      NoteDetailsPage(note: note, date: noteDate(selected_day), image: moodImages[note['mood']] ?? Image.asset('assets/transparent.png')),
+                                      NoteDetailsPage(note: note, date: noteDate(selected_day), image: Image.asset(flowers[note['mood']]))
                                 ),
                               );
                             },

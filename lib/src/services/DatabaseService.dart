@@ -24,7 +24,6 @@ class DatabaseService {
   final MentalService ms = MentalService();
 
   bool streakActive = false;
-  bool streakLoading = false;
   int? streakValue;
 
   Future<List<Map<String, dynamic>>> fetchActivities() async {
@@ -82,7 +81,6 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
 
        if (!streakActive)
       {
-        streakLoading = true;
         _updateStreak();
         streakActive = true;
       }
@@ -351,12 +349,10 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
     log("Updated streak for user ${UserService.instance.user_id}");
 
     streakValue = updateResponse[0]['streak'];
-    streakLoading = false;
   }
     catch(e)
     {
       log("Error updating streak: $e");
-      streakLoading = false;
     }
   }
 
@@ -381,6 +377,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         _resetStreak();
         return 0;
       }
+      streakValue = response[0]['streak'];
       return response[0]['streak'];
     } catch(e) {
       log("Error loading streak: $e");

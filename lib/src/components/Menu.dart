@@ -58,7 +58,10 @@ class _MenuState extends State<Menu>{
   Widget build(BuildContext context) {
     return Scaffold(
       // Display current page
-      body: _pages[_currentPageIndex],
+      body: IndexedStack(
+        index: _currentPageIndex,
+        children: _pages,
+      ),
       //Plus button
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(

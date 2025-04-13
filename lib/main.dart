@@ -15,10 +15,28 @@ void main() async {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
 
-  // Root of application.
+class _MyAppState extends State<MyApp> {
+  
+  final List<String> imagesToCache = ['assets/very_sad.png', 'assets/sad.png', 'assets/neutral.png', 'assets/happy.png', 'assets/very_happy.png'];
+
+  void _preloadImages() {
+    for (int i = 0; i < imagesToCache.length; i++) {
+      precacheImage(AssetImage(imagesToCache[i]), context);
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _preloadImages();
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(

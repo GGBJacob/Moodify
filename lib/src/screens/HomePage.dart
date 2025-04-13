@@ -25,6 +25,7 @@
     @override
     void initState() {
       _loadData(true);
+      streak = DatabaseService.instance.streakValue;
       DatabaseService.instance.updates.listen((_) {
         if(!mounted) return;
         setState(() {
@@ -121,13 +122,17 @@
 
     Widget _gradeBlock()
     {
+      final List<String> flowers = ['assets/very_sad.png', 'assets/sad.png', 'assets/neutral.png', 'assets/happy.png', 'assets/very_happy.png'];
       double previousWeekAverageMood = previousWeekSummary.averageMood();
       double currentWeekAverageMood = weekSummary.averageMood();
       int moodTrend = previousWeekAverageMood!=0 ? (currentWeekAverageMood/previousWeekAverageMood*100).toInt() : 0;
       return CustomBlock(
           child: Column(
               children: [
-                Icon(Icons.sentiment_satisfied, size:150, color: Colors.cyan),
+                Padding(
+                  padding: const EdgeInsets.all(10),
+                  child: Image.asset(flowers[(currentWeekAverageMood).round()], width: 170, height: 170),
+                ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children:[

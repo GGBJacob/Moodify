@@ -106,7 +106,7 @@ class NotesSummary {
   bool wasUserActiveToday()
   {
     if (activeDays == null || activeDays!.isEmpty) return false;
-    DateTime today = DateTime.now();
+    DateTime today = DateTime.now().toLocal();
     DateTime simplifiedToday = DateTime(today.year, today.month, today.day);
     return activeDays!.contains(simplifiedToday);
   }
