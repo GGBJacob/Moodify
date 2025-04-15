@@ -287,6 +287,9 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
           .lte('created_at', endOfMonth.toIso8601String())
           .order('created_at', ascending: true);
 
+      if (response.isEmpty) {
+        return {};
+      }
 
       Map<int, int> moodAverages = {}; 
       DateTime current_date = DateTime.parse(response.first['created_at']);
