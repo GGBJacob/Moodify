@@ -16,6 +16,7 @@ class _MorePageState extends State<MorePage> {
     return PageTemplate(
       children: 
       [
+        SizedBox(height: MediaQuery.of(context).size.height * 0.02),
         _blockWithTitleAndButtons(context),
         PageTemplate.buildBottomSpacing(context)
       ]

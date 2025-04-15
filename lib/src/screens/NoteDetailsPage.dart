@@ -79,10 +79,21 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
                               spacing: 8.0, 
                               runSpacing: 4.0,
                               children: (note['notes_emotions'] as List<dynamic>).map((emotion) {
+                                String emotionName = emotion['emotions']?['emotion_name'] ?? 'Unknown';
+                                int? codePoint = emotion['emotions']?['emotion_icon'] != null ? int.parse(emotion['emotions']['emotion_icon'], radix:16) : null;
+                                IconData? emotionIcon = codePoint != null
+                                  ? IconData(codePoint, fontFamily: 'MaterialIcons')
+                                  : Icons.help_outline;
                                 return Chip(
-                                  label: Text(
-                                    emotion['emotions']?['emotion_name'] ?? 'Unknown',
-                                  ),
+                                  label: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(emotionIcon, size: 20, color: Colors.white),
+                                      SizedBox(width: 5),
+                                      Text(
+                                        emotionName,
+                                        style: TextStyle(color: Colors.white),
+                                      )]),
                                   backgroundColor: Color(0xFF8C4A60), 
                                   labelStyle: TextStyle(color: Colors.white), 
                                 );
@@ -114,26 +125,10 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
                         runSpacing: 4.0,
                         children: (note['notes_activities'] as List<dynamic>).map((activity) {
                           String activityName = activity['activities']?['activity_name'] ?? 'Unknown';
-                          IconData? activityIcon;
-                          switch (activityName) {
-                            case 'Yoga':
-                              activityIcon = Icons.self_improvement;
-                              break;
-                            case 'Walk':
-                              activityIcon = Icons.directions_walk;
-                              break;
-                            case 'Study':
-                              activityIcon = Icons.menu_book_rounded;
-                              break;
-                            case 'Socialize':
-                              activityIcon = Icons.diversity_3;
-                              break;
-                            case 'Work':
-                              activityIcon = Icons.business_center_outlined;
-                              break;
-                            default:
-                              activityIcon = Icons.help_outline;
-                          }
+                          int? codePoint = activity['activities']?['activity_icon'] != null ? int.parse(activity['activities']['activity_icon'], radix:16) : null;
+                          IconData? activityIcon = codePoint != null
+                              ? IconData(codePoint, fontFamily: 'MaterialIcons')
+                              : Icons.help_outline;
                           return Chip(
                             label: Row(
                               mainAxisSize: MainAxisSize.min,

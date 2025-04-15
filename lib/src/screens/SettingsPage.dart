@@ -31,6 +31,7 @@ class _SettingsPageState extends State<SettingsPage>
   @override
   Widget build(BuildContext context) {
     return PageTemplate(children: [
+      SizedBox(height: MediaQuery.of(context).size.height * 0.02),
       CustomBlock(
           child: Column(
         children: [

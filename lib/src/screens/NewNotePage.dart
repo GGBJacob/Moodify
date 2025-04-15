@@ -251,6 +251,9 @@ class _NewNotePageState extends State<NewNotePage>
               children: [
                 ...filteredElements.map(
                   (element) => Chip(
+                    avatar: IconTheme(
+                      data: IconThemeData(color:Colors.white, size: 20),
+                      child:element['icon'] ?? Icon(Icons.help_outline)),
                     label: Text(element['name']),
                     backgroundColor: Color(0xFF8C4A60),
                     labelStyle: TextStyle(color: Colors.white),
@@ -295,6 +298,9 @@ class _NewNotePageState extends State<NewNotePage>
                   setState(() {});
                 },
                 child: Chip(
+                  avatar: IconTheme(
+                    data: IconThemeData(color: isSelected ? Colors.white : Colors.black, size: 20),
+                    child:element['icon'] ?? Icon(Icons.help_outline)),
                   label: Text(element['name']),
                   backgroundColor:
                   isSelected ? Color(0xFF8C4A60) : Colors.grey[300],

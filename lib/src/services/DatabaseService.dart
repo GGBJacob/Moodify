@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:developer';
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:moodify/src/models/NotesSummary.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -36,6 +37,7 @@ class DatabaseService {
       return {
         'id': element['id'] as int,
         'name': element['activity_name'] as String,
+        'icon': element['activity_icon']!= null ? Icon(IconData(int.parse(element['activity_icon'], radix:16), fontFamily: 'MaterialIcons')) : null,
       };
     }).toList();
   } catch (e) {
@@ -54,6 +56,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       return {
         'id': element['id'] as int,
         'name': element['emotion_name'] as String,
+        'icon': element['emotion_icon']!= null ? Icon(IconData(int.parse(element['emotion_icon'], radix:16), fontFamily: 'MaterialIcons')) : null,
       };
     }).toList();
   } catch (e) {
@@ -124,8 +127,8 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         id,
         created_at,
         mood,
-        notes_emotions(emotions(emotion_name)),
-        notes_activities(activities(activity_name)),
+        notes_emotions(emotions(emotion_name, emotion_icon)),
+        notes_activities(activities(activity_name, activity_icon)),
         note
     ''')
           .eq('user_id', user_id)
@@ -303,7 +306,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         }
         else 
         {
-          moodAverages[current_date.day] = (sum/counter).toInt();
+          moodAverages[current_date.day] = (sum/counter).round();
           sum = mood;
           counter = 1;
           current_date = temp_date;
@@ -311,7 +314,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         
       }
 
-      moodAverages[current_date.day] = (sum/counter).toInt();
+      moodAverages[current_date.day] = (sum/counter).round();
 
     return  moodAverages;
     } catch (e) {

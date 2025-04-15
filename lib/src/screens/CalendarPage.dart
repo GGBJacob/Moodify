@@ -42,7 +42,9 @@ class _CalendarPageState extends State<CalendarPage>{
     if (mood == null || mood == -1) {
       return SizedBox(height: 40); 
     } else {
-      return Image.asset(flowers[mood], height: 40); 
+      return Padding(
+        padding: EdgeInsets.all(5),
+        child:Image.asset(flowers[mood], height: 30)); 
     }
   } 
 
@@ -80,13 +82,13 @@ class _CalendarPageState extends State<CalendarPage>{
     return PageTemplate(
       children: 
       [
+        SizedBox(height: MediaQuery.of(context).size.height*0.02),
         CustomBlock(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              SizedBox(height: 10),
+              SizedBox(height: 5),
               Container(
-                height: 493,
                 decoration: BoxDecoration(
                   color: Color(0xFFFFF7F7),
                   borderRadius: BorderRadius.circular(16),
@@ -204,13 +206,14 @@ class _CalendarPageState extends State<CalendarPage>{
                   ), //icons of flowers
                 ),
               ),
-              SizedBox(height: 40.0),
               selected_notes.isEmpty
                   ? Text("")
-                  : Text('Notes from ${noteDate(selected_day)}', 
+                  : Padding(
+                    padding: EdgeInsets.all(12),
+                    child:Text('Notes from ${noteDate(selected_day)}', 
                   style: TextStyle(
                   fontWeight: FontWeight.bold, 
-                  fontSize: 17)),
+                  fontSize: 17))),
                   SizedBox(height: 4),
                   Expanded(
                     child: Scrollbar(
@@ -233,7 +236,7 @@ class _CalendarPageState extends State<CalendarPage>{
                               );
                             },
                             child: Card(
-                              margin: EdgeInsets.symmetric(vertical: 6),
+                              margin: EdgeInsets.only(bottom: 12),
                               child: ListTile(
                                 title: Text('Note created at: ${note['time']}'),
                                 leading: Icon(Icons.sticky_note_2_outlined),

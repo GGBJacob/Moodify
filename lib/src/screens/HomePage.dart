@@ -110,8 +110,8 @@
               mainAxisAlignment: MainAxisAlignment.center,
               children:[
               Text(style: TextStyle(fontSize: 30), "Streak: $streak"),
-              Icon(Icons.local_fire_department_rounded,color: DatabaseService.instance.streakActive ? 
-                Colors.orangeAccent
+              Icon(Icons.water_drop ,color: DatabaseService.instance.streakActive ? 
+                const Color.fromARGB(255, 123, 172, 255)
                 : Colors.grey, size: 40,)
             ]);}
       return CustomBlock(
