@@ -87,9 +87,9 @@ class NotesSummary {
       .toList();
   }
 
-  double averageMood()
+  double? averageMood()
   {
-    if (moods == null || moods!.isEmpty) return 0;
+    if (moods == null || moods!.isEmpty) return null;
     int totalMood = 0;
     int count = 0;
     for (var mood in moods!)
