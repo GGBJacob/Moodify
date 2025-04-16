@@ -51,7 +51,11 @@ class UserService {
       return storedUserId;
     }
 
-
+    if (!userInitCompleter!.isCompleted)
+    {
+      userInitCompleter!.complete();
+    }
+    
     // Rerurn and save UUID
     user_id = storedUserId;
     log("Loaded user id: $user_id");
