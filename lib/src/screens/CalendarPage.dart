@@ -60,7 +60,8 @@ class _CalendarPageState extends State<CalendarPage>{
       notes = DatabaseService.instance.groupNotesByDate(notes_for_month);
       //selected_notes = [];
       selected_notes = getNotesForDay(focused_day);
-      selected_notes.sort((a, b) => DateTime.parse(a['created_at']).compareTo(DateTime.parse(b['created_at'])));});
+      selected_notes.sort((a, b) => DateTime.parse(a['created_at']).compareTo(DateTime.parse(b['created_at'])));
+      });
   }
 
   void selectedDay(DateTime day, DateTime focus){
@@ -69,13 +70,17 @@ class _CalendarPageState extends State<CalendarPage>{
       selected_day = day;
       focused_day = focus;
       selected_notes = getNotesForDay(selected_day);
+      selected_notes.sort((a, b) => DateTime.parse(a['created_at']).compareTo(DateTime.parse(b['created_at'])));
     });
   }
 
   List<Map<String, dynamic>> getNotesForDay(DateTime day) {
-      print(notes[day]);
-      return notes[day] ?? [];
-    }
+    final list = notes[day];
+    if (list == null) return [];
+
+    list.sort((a, b) => DateTime.parse(a['created_at']).compareTo(DateTime.parse(b['created_at'])));
+    return list;
+  }
 
   @override
   Widget build(BuildContext context) {
