@@ -8,8 +8,8 @@ import 'package:moodify/src/services/AuthWrapper.dart';
 import 'package:moodify/src/services/UserService.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:uni_links/uni_links.dart';
-
+//import 'package:uni_links5/uni_links.dart';
+import 'package:app_links/app_links.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -44,15 +44,29 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
-  @override
-  void initState() {
-    super.initState();
-    _sub = uriLinkStream.listen((Uri? uri) {
+  late final AppLinks _appLinks;
+
+  void _initDeepLinks() async {
+    _appLinks = AppLinks();
+
+    // Obsługa linków otwartych, gdy aplikacja była już uruchomiona
+    _appLinks.uriLinkStream.listen((Uri? uri) {
       if (uri != null) {
-        debugPrint("Received deep link: $uri");
         _handleDeepLink(uri);
       }
     });
+
+    // Obsługa linku otwartego przy zimnym starcie aplikacji
+    final Uri? initialUri = await _appLinks.getInitialLink();
+    if (initialUri != null) {
+      _handleDeepLink(initialUri);
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _initDeepLinks();
   }
 
   @override

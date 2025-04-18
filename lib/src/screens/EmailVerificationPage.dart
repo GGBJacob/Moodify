@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/services/AuthWrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uni_links/uni_links.dart';
+import 'package:app_links/app_links.dart';
 import 'dart:async';
 import 'package:moodify/src/components/Menu.dart'; // Dodaj import Menu
 
@@ -32,7 +32,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
       await _handleInitialUri();
     }
     
-    _sub = uriLinkStream.listen((Uri? uri) async {
+    final appLinks = AppLinks();
+    _sub = appLinks.uriLinkStream.listen((Uri? uri) async {
       if (uri != null) {
         await _processUri(uri);
       }
@@ -45,7 +46,8 @@ class _EmailVerificationPageState extends State<EmailVerificationPage> {
 
   Future<void> _handleInitialUri() async {
     try {
-      final initialUri = await getInitialUri();
+      final appLinks = AppLinks();
+      final initialUri = await appLinks.getInitialLink();
       if (initialUri != null) {
         await _processUri(initialUri);
       } else {
