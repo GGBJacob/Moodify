@@ -1,6 +1,7 @@
 import 'dart:collection';
 import 'dart:developer';
 import 'dart:async';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:moodify/src/models/NotesSummary.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -26,6 +27,21 @@ class DatabaseService {
 
   bool streakActive = false;
   int? streakValue;
+
+  Future<bool> testConnection() async{
+    try{
+      await supabase.from('emotions').select().limit(1);
+      return true;
+    }
+    on SocketException catch(_)
+    {
+      return false;
+    }catch (e)
+    {
+      log("Error while testing connection: $e");
+      return false;
+    }
+  }
 
   Future<List<Map<String, dynamic>>> fetchActivities() async {
   try {

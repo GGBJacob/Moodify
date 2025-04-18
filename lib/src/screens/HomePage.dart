@@ -24,6 +24,7 @@
 
     @override
     void initState() {
+      checkConnection();
       _loadData(true);
       _loadRisks();
       DatabaseService.instance.updates.listen((_) {
@@ -36,6 +37,38 @@
       super.initState();
     }
 
+    void checkConnection() async {
+      if (!await DatabaseService.instance.testConnection()){
+        _showNoInternetDialog();
+      }
+    }
+
+    void _showNoInternetDialog()
+    {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Row(
+              children: const [
+                Icon(Icons.wifi_off, color: Colors.red),
+                SizedBox(width: 8),
+                Text("No internet!"),
+              ],
+            ),
+            content: const Text("Failed to establish a connection with the database. Make sure you are connected to the internet and restart the app."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    }
 
     Future<void> _loadData(bool initialize) async {
       if (initialize)
