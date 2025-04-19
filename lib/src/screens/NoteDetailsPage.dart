@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
-import 'package:moodify/src/components/PageTemplate.dart';
+import 'package:moodify/src/components/LabeledIconChip.dart';
 
 class NoteDetailsPage extends StatefulWidget {
   final Map<String, dynamic> note; 
@@ -88,23 +88,8 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
                                 runSpacing: 4.0,
                                 children: (note['notes_emotions'] as List<dynamic>).map((emotion) {
                                   String emotionName = emotion['emotions']?['emotion_name'] ?? 'Unknown';
-                                  int? codePoint = emotion['emotions']?['emotion_icon'] != null ? int.parse(emotion['emotions']['emotion_icon'], radix:16) : null;
-                                  IconData? emotionIcon = codePoint != null
-                                    ? IconData(codePoint, fontFamily: 'MaterialIcons')
-                                    : Icons.help_outline;
-                                  return Chip(
-                                    label: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(emotionIcon, size: 20, color: Colors.white),
-                                        SizedBox(width: 5),
-                                        Text(
-                                          emotionName,
-                                          style: TextStyle(color: Colors.white),
-                                        )]),
-                                    backgroundColor: Color(0xFF8C4A60), 
-                                    labelStyle: TextStyle(color: Colors.white), 
-                                  );
+                                  String? codePoint = emotion['emotions']?['emotion_icon'];
+                                  return LabeledIconChip(label: emotionName, iconCodePoint: codePoint);
                                 }).toList(),
                               ),
                         ],
@@ -133,24 +118,8 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
                           runSpacing: 4.0,
                           children: (note['notes_activities'] as List<dynamic>).map((activity) {
                             String activityName = activity['activities']?['activity_name'] ?? 'Unknown';
-                            int? codePoint = activity['activities']?['activity_icon'] != null ? int.parse(activity['activities']['activity_icon'], radix:16) : null;
-                            IconData? activityIcon = codePoint != null
-                                ? IconData(codePoint, fontFamily: 'MaterialIcons')
-                                : Icons.help_outline;
-                            return Chip(
-                              label: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(activityIcon, size: 20, color: Colors.white),
-                                  SizedBox(width: 5),
-                                  Text(
-                                    activityName,
-                                    style: TextStyle(color: Colors.white),
-                                  ),
-                                ],
-                              ),
-                              backgroundColor: Color(0xFF8C4A60),
-                            );
+                            String? codePoint = activity['activities']?['activity_icon'];
+                            return LabeledIconChip(label: activityName, iconCodePoint: codePoint);
                           }).toList(),
                         ),
                         ],

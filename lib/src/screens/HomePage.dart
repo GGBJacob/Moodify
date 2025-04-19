@@ -1,6 +1,7 @@
 
   import 'package:flutter/material.dart';
   import 'package:moodify/src/components/CustomBlock.dart';
+import 'package:moodify/src/components/LabeledIconChip.dart';
   import 'package:moodify/src/components/PageTemplate.dart';
   import 'package:moodify/src/models/NotesSummary.dart';
   import 'package:moodify/src/services/DatabaseService.dart';
@@ -120,7 +121,7 @@
                         const SizedBox(height: 20),
                         _activitiesBlock(),
                         const SizedBox(height: 20),
-                        _fifthBlock(),
+                        _risksBlock(),
                         PageTemplate.buildBottomSpacing(context)
                       ],
                       ),
@@ -390,7 +391,14 @@
       if (!isSummaryLoading && !weekSummary.isEmpty) {
         final emotionsData = weekSummary.topEmotions(5);
           fetchedEmotions = emotionsData.isNotEmpty && !isSummaryLoading
-            ? Text(emotionsData.map((e) => e).join(', '))
+            ? 
+            Wrap(
+              spacing: 8,
+              children:
+                emotionsData.map((e) {
+                  return LabeledIconChip(label: e, iconCodePoint: weekSummary.icons![e]);
+                }).toList(),
+            )
             : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 5,
@@ -413,13 +421,18 @@
 
     Widget _activitiesBlock()
     {
-
       Widget fetchedActivities = Text("Loading...");
 
       if (!isSummaryLoading && !weekSummary.isEmpty) {
         final activitiesData = weekSummary.topActivities(5);
           fetchedActivities = activitiesData.isNotEmpty
-            ? Text(activitiesData.map((e) => e).join(', '))
+            ? Wrap(
+              spacing: 8,
+              children:
+                activitiesData.map((e) {
+                  return LabeledIconChip(label: e, iconCodePoint: weekSummary.icons![e]);
+                }).toList(),
+            )
             : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 5,
@@ -455,7 +468,7 @@
     setState(() => _isLoading = false);
   }
 
- Widget _fifthBlock() {
+ Widget _risksBlock() {
   final risks = _risks ?? [];
 
   final sortedRisks = List<Pair<String, double>>.from(risks)

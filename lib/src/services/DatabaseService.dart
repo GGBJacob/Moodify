@@ -104,8 +104,6 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         streakActive = true;
       }
 
-      _updateController.add(null); //notify calendar
-
       // Insert to notes_emotions
       await supabase
       .from('notes_emotions')
@@ -124,6 +122,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         }).toList());
       log("Added activities $activities to note $noteId");
       
+      _updateController.add(null); // Notify listeners about the update
       return noteId;
     }
     catch(e){
@@ -222,8 +221,8 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         .select('''
         mood,
         created_at,
-        notes_emotions(emotions(emotion_name)),
-        notes_activities(activities(activity_name))
+        notes_emotions(emotions(emotion_name, emotion_icon)),
+        notes_activities(activities(activity_name, activity_icon))
         ''')
         .eq('user_id', userId)
         .gte('created_at', startOfWeek.toIso8601String())
