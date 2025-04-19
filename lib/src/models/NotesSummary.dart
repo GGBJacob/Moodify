@@ -6,12 +6,14 @@ class NotesSummary {
   final List<Pair<String, int>>? emotions;
   final List<Pair<String, int>>? activities;
   final Set<DateTime>? activeDays;
+  final Map<String,String>? icons;
 
   NotesSummary({
     this.moods,
     this.emotions,
     this.activities,
-    this.activeDays
+    this.activeDays,
+    this.icons,
   });
 
   factory NotesSummary.fromRaw(List<Map<String, dynamic>> rawData) {
@@ -20,6 +22,7 @@ class NotesSummary {
   final Map<String, int> emotionCounts = {};
   final Map<String, int> activityCounts = {};
   final Set<DateTime> activeDays = {};
+  final Map<String,String> icons = {};
 
   for (var note in rawData) {
     int mood = note['mood'];
@@ -34,12 +37,20 @@ class NotesSummary {
     for (var e in emotions) {
       String emotion = e['emotions']['emotion_name'];
       emotionCounts[emotion] = (emotionCounts[emotion] ?? 0) + 1;
+      String? emotionIcon = e['emotions']['emotion_icon'];
+      if (emotionIcon != null && !icons.containsKey(emotion)) {
+        icons[emotion] = emotionIcon;
+      }
     }
 
     List activities = note['notes_activities'] ?? [];
     for (var a in activities) {
       String activity = a['activities']['activity_name'];
       activityCounts[activity] = (activityCounts[activity] ?? 0) + 1;
+      String? activityIcon = a['activities']['activity_icon'];
+      if (activityIcon != null && !icons.containsKey(activity)) {
+        icons[activity] = activityIcon;
+      }
     }
   }
 
@@ -53,7 +64,8 @@ class NotesSummary {
     activities: activityCounts.entries
         .map((entry) => Pair(entry.key, entry.value))
         .toList(),
-    activeDays: activeDays.toSet()
+    activeDays: activeDays.toSet(),
+    icons: icons,
     );
     }
 
@@ -87,9 +99,9 @@ class NotesSummary {
       .toList();
   }
 
-  double averageMood()
+  double? averageMood()
   {
-    if (moods == null || moods!.isEmpty) return 0;
+    if (moods == null || moods!.isEmpty) return null;
     int totalMood = 0;
     int count = 0;
     for (var mood in moods!)

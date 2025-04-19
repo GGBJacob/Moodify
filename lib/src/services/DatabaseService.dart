@@ -1,6 +1,8 @@
 import 'dart:collection';
 import 'dart:developer';
 import 'dart:async';
+import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:moodify/src/models/NotesSummary.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
@@ -26,6 +28,21 @@ class DatabaseService {
   bool streakActive = false;
   int? streakValue;
 
+  Future<bool> testConnection() async{
+    try{
+      await supabase.from('emotions').select().limit(1);
+      return true;
+    }
+    on SocketException catch(_)
+    {
+      return false;
+    }catch (e)
+    {
+      log("Error while testing connection: $e");
+      return false;
+    }
+  }
+
   Future<List<Map<String, dynamic>>> fetchActivities() async {
   try {
     final response = await supabase.from('activities').select('*');
@@ -36,6 +53,7 @@ class DatabaseService {
       return {
         'id': element['id'] as int,
         'name': element['activity_name'] as String,
+        'icon': element['activity_icon']!= null ? Icon(IconData(int.parse(element['activity_icon'], radix:16), fontFamily: 'MaterialIcons')) : null,
       };
     }).toList();
   } catch (e) {
@@ -54,6 +72,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       return {
         'id': element['id'] as int,
         'name': element['emotion_name'] as String,
+        'icon': element['emotion_icon']!= null ? Icon(IconData(int.parse(element['emotion_icon'], radix:16), fontFamily: 'MaterialIcons')) : null,
       };
     }).toList();
   } catch (e) {
@@ -85,8 +104,6 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         streakActive = true;
       }
 
-      _updateController.add(null); //notify calendar
-
       // Insert to notes_emotions
       await supabase
       .from('notes_emotions')
@@ -105,6 +122,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         }).toList());
       log("Added activities $activities to note $noteId");
       
+      _updateController.add(null); // Notify listeners about the update
       return noteId;
     }
     catch(e){
@@ -124,8 +142,8 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         id,
         created_at,
         mood,
-        notes_emotions(emotions(emotion_name)),
-        notes_activities(activities(activity_name)),
+        notes_emotions(emotions(emotion_name, emotion_icon)),
+        notes_activities(activities(activity_name, activity_icon)),
         note
     ''')
           .eq('user_id', user_id)
@@ -203,8 +221,8 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         .select('''
         mood,
         created_at,
-        notes_emotions(emotions(emotion_name)),
-        notes_activities(activities(activity_name))
+        notes_emotions(emotions(emotion_name, emotion_icon)),
+        notes_activities(activities(activity_name, activity_icon))
         ''')
         .eq('user_id', userId)
         .gte('created_at', startOfWeek.toIso8601String())
@@ -284,6 +302,9 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
           .lte('created_at', endOfMonth.toIso8601String())
           .order('created_at', ascending: true);
 
+      if (response.isEmpty) {
+        return {};
+      }
 
       Map<int, int> moodAverages = {}; 
       DateTime current_date = DateTime.parse(response.first['created_at']);
@@ -303,7 +324,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         }
         else 
         {
-          moodAverages[current_date.day] = (sum/counter).toInt();
+          moodAverages[current_date.day] = (sum/counter).round();
           sum = mood;
           counter = 1;
           current_date = temp_date;
@@ -311,7 +332,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
         
       }
 
-      moodAverages[current_date.day] = (sum/counter).toInt();
+      moodAverages[current_date.day] = (sum/counter).round();
 
     return  moodAverages;
     } catch (e) {

@@ -1,6 +1,7 @@
 
   import 'package:flutter/material.dart';
   import 'package:moodify/src/components/CustomBlock.dart';
+import 'package:moodify/src/components/LabeledIconChip.dart';
   import 'package:moodify/src/components/PageTemplate.dart';
   import 'package:moodify/src/models/NotesSummary.dart';
   import 'package:moodify/src/services/DatabaseService.dart';
@@ -24,6 +25,7 @@
 
     @override
     void initState() {
+      checkConnection();
       _loadData(true);
       _loadRisks();
       DatabaseService.instance.updates.listen((_) {
@@ -36,6 +38,38 @@
       super.initState();
     }
 
+    void checkConnection() async {
+      if (!await DatabaseService.instance.testConnection()){
+        _showNoInternetDialog();
+      }
+    }
+
+    void _showNoInternetDialog()
+    {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Row(
+              children: const [
+                Icon(Icons.wifi_off, color: Colors.red),
+                SizedBox(width: 8),
+                Text("No internet!"),
+              ],
+            ),
+            content: const Text("Failed to establish a connection with the database. Make sure you are connected to the internet and restart the app."),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
+    }
 
     Future<void> _loadData(bool initialize) async {
       if (initialize)
@@ -87,7 +121,7 @@
                         const SizedBox(height: 20),
                         _activitiesBlock(),
                         const SizedBox(height: 20),
-                        _fifthBlock(),
+                        _risksBlock(),
                         PageTemplate.buildBottomSpacing(context)
                       ],
                       ),
@@ -110,8 +144,8 @@
               mainAxisAlignment: MainAxisAlignment.center,
               children:[
               Text(style: TextStyle(fontSize: 30), "Streak: $streak"),
-              Icon(Icons.local_fire_department_rounded,color: DatabaseService.instance.streakActive ? 
-                Colors.orangeAccent
+              Icon(Icons.water_drop ,color: DatabaseService.instance.streakActive ? 
+                const Color.fromARGB(255, 123, 172, 255)
                 : Colors.grey, size: 40,)
             ]);}
       return CustomBlock(
@@ -122,28 +156,116 @@
           );
     }
 
+  void showHelpDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Mood Flower & Trend'),
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            spacing: 20,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                spacing: 5,
+                children:[
+                  Text('🌸 Mood Flower:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    'The flower shows your average mood for the current week. '
+                    'The happier it is, the better your overall mood! '
+                    'It’s a simple, visual way to reflect how you’ve been feeling this week.',
+                  )
+                ]
+              ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('🌟 Mood Trend:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  SizedBox(height: 5),
+                  Text(
+                    'This shows how your mood this week compares to last week. '
+                    'Make sure to log your moods to enable the trend visualisation.',
+                  ),
+                  SizedBox(height: 10),
+                  Row(children: [
+                    Padding(
+                      padding: EdgeInsets.only(right:5),
+                      child:Icon(Icons.keyboard_double_arrow_up_rounded, color: Colors.green)),
+                    Expanded(
+                      child: Text('An upward arrow means you are feeling better.'))
+                  ]),
+                  SizedBox(height: 10),
+                  Row(children: [
+                    Padding(
+                      padding: EdgeInsets.only(left: 2, right: 8),
+                      child: Text('＝', style: TextStyle(fontSize: 20, color: Colors.orangeAccent, fontWeight: FontWeight.bold))),
+                    Expanded(
+                      child:Text("A flat line means your mood stayed about the same."))
+                  ],),
+                  SizedBox(height: 10),
+                  Row(children: [
+                    Padding(
+                      padding: EdgeInsets.only(right:5),
+                      child:Icon(Icons.keyboard_double_arrow_down_rounded, color: Colors.red)),
+                    Expanded(
+                      child:Text('A downward arrow means your mood has decreased.'))
+                  ])
+                ]
+              ),
+            ],
+          ),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
     Widget _gradeBlock()
     {
       final List<String> flowers = ['assets/very_sad.png', 'assets/sad.png', 'assets/neutral.png', 'assets/happy.png', 'assets/very_happy.png'];
-      double previousWeekAverageMood = previousWeekSummary.averageMood();
-      double currentWeekAverageMood = weekSummary.averageMood();
-      int moodTrend = previousWeekAverageMood!=0 ? (currentWeekAverageMood/previousWeekAverageMood*100).toInt() : 0;
+      double? previousWeekAverageMood = previousWeekSummary.averageMood();
+      double? currentWeekAverageMood = weekSummary.averageMood();
+      bool showTrend = previousWeekAverageMood != null && currentWeekAverageMood != null;
+      int moodTrend = showTrend ? (currentWeekAverageMood-previousWeekAverageMood/previousWeekAverageMood*100).toInt() : 0;
       return CustomBlock(
           child: Column(
               children: [
-                Padding(
-                  padding: const EdgeInsets.all(10),
-                  child: Image.asset(flowers[(currentWeekAverageMood).round()], width: 170, height: 170),
-                ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children:[
-                    Text(style: TextStyle(fontSize: 20), 'Mood trend: ${moodTrend}%'),
-                    moodTrend > 0 ? 
-                      Icon(Icons.keyboard_double_arrow_up_rounded, color: Colors.green) 
-                        : moodTrend < 0 ? Icon(Icons.keyboard_double_arrow_down_rounded, color: Colors.red) : SizedBox.shrink(),
-                    ]
-                  ),
+                  textDirection: TextDirection.rtl,
+                  children: [
+                    GestureDetector(
+                      onTap: showHelpDialog,
+                      child: Icon(Icons.help_outline),
+                    )
+                  ],
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(bottom:10),
+                  child: Image.asset(flowers[(currentWeekAverageMood ?? 2).round()], width: 170, height: 170),
+                ),
+                if (showTrend)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children:[
+                      const Text(style: TextStyle(fontSize: 20), 'Mood trend:'),
+                      moodTrend > 0 
+                        ? const Icon(Icons.keyboard_double_arrow_up_rounded, color: Colors.green) 
+                        : moodTrend < 0 
+                          ? const Icon(Icons.keyboard_double_arrow_down_rounded, color: Colors.red) 
+                          : const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 2),
+                            child: Text('＝', style: TextStyle(fontSize: 20, color: Colors.orangeAccent, fontWeight: FontWeight.bold))),
+                      ]
+                    ),
               ]
           )
       );
@@ -269,7 +391,14 @@
       if (!isSummaryLoading && !weekSummary.isEmpty) {
         final emotionsData = weekSummary.topEmotions(5);
           fetchedEmotions = emotionsData.isNotEmpty && !isSummaryLoading
-            ? Text(emotionsData.map((e) => e).join(', '))
+            ? 
+            Wrap(
+              spacing: 8,
+              children:
+                emotionsData.map((e) {
+                  return LabeledIconChip(label: e, iconCodePoint: weekSummary.icons![e]);
+                }).toList(),
+            )
             : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 5,
@@ -292,13 +421,18 @@
 
     Widget _activitiesBlock()
     {
-
       Widget fetchedActivities = Text("Loading...");
 
       if (!isSummaryLoading && !weekSummary.isEmpty) {
         final activitiesData = weekSummary.topActivities(5);
           fetchedActivities = activitiesData.isNotEmpty
-            ? Text(activitiesData.map((e) => e).join(', '))
+            ? Wrap(
+              spacing: 8,
+              children:
+                activitiesData.map((e) {
+                  return LabeledIconChip(label: e, iconCodePoint: weekSummary.icons![e]);
+                }).toList(),
+            )
             : Row(
               mainAxisAlignment: MainAxisAlignment.center,
               spacing: 5,
@@ -334,7 +468,7 @@
     setState(() => _isLoading = false);
   }
 
- Widget _fifthBlock() {
+ Widget _risksBlock() {
   final risks = _risks ?? [];
 
   final sortedRisks = List<Pair<String, double>>.from(risks)

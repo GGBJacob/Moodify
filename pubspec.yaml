@@ -45,6 +45,9 @@ dependencies:
   flutter_pdfview: ^1.4.0
   file_picker: ^8.1.7
   path_provider: ^2.1.5
+  flutter_launcher_icons: ^0.14.3
+  flutter_native_splash: ^2.4.4
+  url_launcher: ^6.3.1
 
 dev_dependencies:
   flutter_test:
@@ -108,3 +111,10 @@ flutter:
     - assets/neutral.png
     - assets/happy.png
     - assets/very_happy.png
+
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/moodify_logo.jpg"
+  adaptive_icon_foreground: "assets/moodify_logo_fore.png"
+  adaptive_icon_background: "#ffffff"

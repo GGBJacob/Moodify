@@ -44,11 +44,11 @@ class _MenuState extends State<Menu>{
           label: ''
       ),
       BottomNavigationBarItem(
-          icon: Icon(Icons.question_mark),
+          icon: Icon(Icons.medical_services),
           label: ''
       ),
       BottomNavigationBarItem(
-          icon: Icon(Icons.more_horiz_rounded),
+          icon: Icon(Icons.settings),
           label: ''
       ),
     ];

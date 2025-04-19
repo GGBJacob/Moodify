@@ -27,12 +27,19 @@ class UserService {
 
   Completer<void>? userInitCompleter;
   Future<String> getOrGenerateUserId() async {
+
+    if (userInitCompleter != null) {
+      await userInitCompleter!.future;
+    }
+    else{
+    userInitCompleter = Completer<void>();
+    }
+
     final prefs = await SharedPreferences.getInstance();
     
     String? storedUserId = prefs.getString('user_id');
     
     if (storedUserId == null) {
-      userInitCompleter = Completer<void>();
       // If no user id was found, generate one
       var uuid = Uuid();
       storedUserId = uuid.v4();
@@ -40,9 +47,15 @@ class UserService {
       await prefs.setString('user_id', storedUserId); // Save UUID in memory
       user_id = storedUserId;
       userInitCompleter!.complete();
+      log("Generated user id: $user_id");
+      return storedUserId;
     }
 
-
+    if (!userInitCompleter!.isCompleted)
+    {
+      userInitCompleter!.complete();
+    }
+    
     // Rerurn and save UUID
     user_id = storedUserId;
     log("Loaded user id: $user_id");

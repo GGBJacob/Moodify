@@ -160,6 +160,9 @@ class _NewNotePageState extends State<NewNotePage>
 
     ScaffoldMessenger.of(context).showSnackBar(
     SnackBar(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
       content: Row(
         children: [
           CircularProgressIndicator(color: Colors.white),
@@ -168,7 +171,7 @@ class _NewNotePageState extends State<NewNotePage>
         ],
       ),
       behavior: SnackBarBehavior.floating,
-      backgroundColor: Colors.blue,
+      backgroundColor: Colors.pinkAccent,
     ),
     );
 
@@ -187,6 +190,9 @@ class _NewNotePageState extends State<NewNotePage>
       Navigator.pop(context);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
           content: Row(
             children:[
               Icon(Icons.check_circle, color: Colors.white),
@@ -199,8 +205,12 @@ class _NewNotePageState extends State<NewNotePage>
     }
     else
     {
+    Navigator.pop(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
+        shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        ),
         content: 
         Row(children: [
           Icon(Icons.close, color: Colors.white),
@@ -251,6 +261,9 @@ class _NewNotePageState extends State<NewNotePage>
               children: [
                 ...filteredElements.map(
                   (element) => Chip(
+                    avatar: IconTheme(
+                      data: IconThemeData(color:Colors.white, size: 20),
+                      child:element['icon'] ?? Icon(Icons.help_outline)),
                     label: Text(element['name']),
                     backgroundColor: Color(0xFF8C4A60),
                     labelStyle: TextStyle(color: Colors.white),
@@ -295,6 +308,9 @@ class _NewNotePageState extends State<NewNotePage>
                   setState(() {});
                 },
                 child: Chip(
+                  avatar: IconTheme(
+                    data: IconThemeData(color: isSelected ? Colors.white : Colors.black, size: 20),
+                    child:element['icon'] ?? Icon(Icons.help_outline)),
                   label: Text(element['name']),
                   backgroundColor:
                   isSelected ? Color(0xFF8C4A60) : Colors.grey[300],
