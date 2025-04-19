@@ -67,46 +67,67 @@ class _SettingsPageState extends State<SettingsPage>
   }
 
   Widget _popUp() {
-    return AlertDialog(
-      title: Text('Export report'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('Choose start and end dates'),
-          SizedBox(height:20),
-          _datePicker(true),
-          SizedBox(height:20),
-          _datePicker(false),
+    return StatefulBuilder(
+      builder: (BuildContext context, StateSetter dialogSetState) {
+        return AlertDialog(
+        title: Text('Export report'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Choose start and end dates'),
+            SizedBox(height:20),
+            _datePicker(true),
+            SizedBox(height:20),
+            _datePicker(false),
+          ],
+        ),
+        actions: [
+          TextButton(
+              onPressed: () {Navigator.pop(context); _resetDialog();},
+              child: Text('Cancel')),
+          TextButton(
+              onPressed: () => _validateDialog(context, dialogSetState),
+              child: Text('Export'))
         ],
-      ),
-      actions: [
-        TextButton(
-            onPressed: () {Navigator.pop(context); _resetDialog();},
-            child: Text('Cancel')),
-        TextButton(
-            onPressed: () => _validateDialog(context),
-            child: Text('Export'))
-      ],
-    );
+      );
+      });
   }
 
   void _resetDialog()
   {
     _startDateError = false;
     _endDateError = false;
-    _startDateController.text = 'START DATE';
-    _endDateController.text = 'END DATE';
+    _startDateController.text = '';
+    _endDateController.text = 'TODAY';
   }
 
 
-  void _validateDialog(BuildContext context)
+  void _validateDialog(BuildContext context, StateSetter dialogSetState)
   {
     if (_endDate.difference(_startDate).inDays <= 0)
     {
       log("Invalid date");
       // Invalid period entered
-      setState(() { // TODO: For some weird reason, this doesn't refresh the dialog
+      dialogSetState(() {
+        _startDateError = true;
+      });
+      return;
+    }
+    else if(_endDate.isAfter(DateTime.now()) && _startDate.isAfter(DateTime.now()))
+    {
+      log("Invalid date");
+      // Invalid period entered
+      dialogSetState(() {
+        _startDateError = true;
         _endDateError = true;
+      });
+      return;
+    }
+    else if(_startDate.isAfter(DateTime.now()))
+    {
+      log("Invalid date");
+      // Invalid period entered
+      dialogSetState(() { // TODO: For some weird reason, this doesn't refresh the dialog
         _startDateError = true;
       });
       return;
