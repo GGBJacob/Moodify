@@ -391,9 +391,12 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       if (response[0]['last_time_active'] == null) {
         return response[0]['streak'];
       }
-      
-      DateTime lastActive = DateTime.parse(response[0]['last_time_active']);
-      if (DateTime.now().toUtc().difference(lastActive.toUtc()).inDays > 1)
+      final now = DateTime.now();
+      DateTime lastActive = DateTime.parse(response[0]['last_time_active']).toLocal();
+      final lastDate = DateTime(lastActive.year, lastActive.month, lastActive.day);
+      final todayDate = DateTime(now.year, now.month, now.day);
+
+      if (todayDate.difference(lastDate).inDays > 1)
       {
         _resetStreak();
         return 0;
