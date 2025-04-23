@@ -24,7 +24,7 @@ class _CalendarPageState extends State<CalendarPage>{
   Map<DateTime, List<Map<String, dynamic>>> notes = {};
 
   DateTime selected_day = DateTime.now(); //day clicked by user
-  DateTime focused_day = DateTime.now(); //dtermines which month is being displayed
+  DateTime focused_day = DateTime.now(); //determines which month is being displayed
   List<Map<String, dynamic>> selected_notes = [];
 
   @override

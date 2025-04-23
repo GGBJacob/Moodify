@@ -2,7 +2,9 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/PageTemplate.dart';
+import 'package:moodify/src/screens/AuthPage.dart';
 import 'package:moodify/src/services/ReportService.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../components/CustomBlock.dart';
 
@@ -27,6 +29,66 @@ class _SettingsPageState extends State<SettingsPage>
   bool _startDateError = false;
   bool _endDateError = false;
 
+Future<void> _logout() async {
+  try {
+    await Supabase.instance.client.auth.signOut();
+    
+    if (mounted) {
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => AuthPage()),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Logout failed: ${e.toString()}'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+}
+
+  Widget _buildLogoutButton() {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.red,
+        textStyle: const TextStyle(fontSize: 20),
+      ),
+      onPressed: () async {
+        final confirm = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Confirm Logout'),
+            content: const Text('Are you sure you want to sign out?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Logout', style: TextStyle(color: Colors.red)),
+              ),
+            ],
+          ),
+        );
+        
+        if (confirm == true) {
+          await _logout();
+        }
+      },
+      child: const Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.logout, color: Colors.white),
+          SizedBox(width: 10),
+          Text('Sign Out', style: TextStyle(color: Colors.white)),
+        ],
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +101,20 @@ class _SettingsPageState extends State<SettingsPage>
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.nightlight_outlined),
-              Text(style: TextStyle(fontSize: 20), 'Dark mode'),
+              const Icon(Icons.email, size: 16),
+              const SizedBox(width: 8),
+              Text(
+                Supabase.instance.client.auth.currentUser?.email ?? 'Not logged in',
+                style: const TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.nightlight_outlined),
+              const Text(style: TextStyle(fontSize: 20), 'Dark mode'),
               Switch(
                 value: darkModeOn,
                 onChanged: (value) {
@@ -51,7 +125,7 @@ class _SettingsPageState extends State<SettingsPage>
               )
             ],
           ),
-          SizedBox(height: 20),
+          const SizedBox(height: 20),
           ElevatedButton(
             style: ElevatedButton.styleFrom(
                 textStyle: const TextStyle(fontSize: 20)),
@@ -59,7 +133,9 @@ class _SettingsPageState extends State<SettingsPage>
               showDialog(context: context, builder: (context) => _popUp());
             },
             child: const Text('Export report'),
-          )
+          ),
+          const SizedBox(height: 20),
+          _buildLogoutButton(), // Dodany przycisk wylogowania
         ],
       )),
       PageTemplate.buildBottomSpacing(context)
@@ -127,7 +203,7 @@ class _SettingsPageState extends State<SettingsPage>
     {
       log("Invalid date");
       // Invalid period entered
-      dialogSetState(() { // TODO: For some weird reason, this doesn't refresh the dialog
+      dialogSetState(() {
         _startDateError = true;
       });
       return;

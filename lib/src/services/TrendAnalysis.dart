@@ -1,10 +1,6 @@
-import 'dart:ffi';
-import 'dart:io';
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
 import 'UserService.dart';
-import 'MentalService.dart';
 import '../utils/Pair.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
@@ -26,11 +22,11 @@ class CrisisPredictionService
 
   static CrisisPredictionService get instance => _instance;
 
-  final SupabaseClient supabase = UserService.instance.supabase;
+  final SupabaseClient supabase = Supabase.instance.client;
   
   Future<List<Pair<String, double>>> calculateDailyRisks() async
   {
-    String user_uuid = await UserService.instance.getOrGenerateUserId();
+    String user_uuid = await UserService().getUserId();
     List<Pair<DateTime, List<double>>> moods = await fetchMoods(user_uuid);
     List<Pair<DateTime, List<double>>> points = await fetchPoints(user_uuid);
     List<dynamic> gathered_moods_points = connect(moods, points);

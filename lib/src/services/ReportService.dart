@@ -1,6 +1,5 @@
 import 'dart:developer';
 import 'dart:io';
-import 'dart:ui';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 import 'package:moodify/src/services/DatabaseService.dart';
@@ -19,8 +18,6 @@ class ReportService {
     _startDate = DateTime(startDate.year, startDate.month, startDate.day);
     _endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59);
   }
-
-  
 
   void getCounts(List<Map<String, dynamic>> response) {
     _noteCount = response.length;
@@ -229,7 +226,6 @@ class ReportService {
     return null;
   }
 }
-
 
   pw.Widget _testResultsTable(List<Map<String,dynamic>> testResults)
   {

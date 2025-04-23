@@ -1,90 +1,16 @@
-import 'dart:async';
-import 'dart:developer';
-
-import 'package:moodify/src/services/DatabaseService.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class UserService {
-  
-  UserService._privateConstructor() {
-    _initialize(); // Wywołujemy inicjalizację
-  }
-  
-  static final UserService _instance = UserService._privateConstructor();
+  static final UserService _instance = UserService._internal();
+  factory UserService() => _instance;
+  UserService._internal();
 
-  static UserService get instance => _instance;
-
-  final SupabaseClient supabase  = Supabase.instance.client;
-
-  late String user_id;
-
-
-  void _initialize() async {
-    user_id = await getOrGenerateUserId();
-  }
-
-  Completer<void>? userInitCompleter;
-  Future<String> getOrGenerateUserId() async {
-
-    if (userInitCompleter != null) {
-      await userInitCompleter!.future;
-    }
-    else{
-    userInitCompleter = Completer<void>();
-    }
-
-    final prefs = await SharedPreferences.getInstance();
+  String getUserId(){
+    final user = Supabase.instance.client.auth.currentUser;
     
-    String? storedUserId = prefs.getString('user_id');
-    
-    if (storedUserId == null) {
-      // If no user id was found, generate one
-      var uuid = Uuid();
-      storedUserId = uuid.v4();
-      await DatabaseService.instance.addUserToStreaks(storedUserId);
-      await prefs.setString('user_id', storedUserId); // Save UUID in memory
-      user_id = storedUserId;
-      userInitCompleter!.complete();
-      log("Generated user id: $user_id");
-      return storedUserId;
+    if (user != null) {
+      return user.id;
     }
-
-    if (!userInitCompleter!.isCompleted)
-    {
-      userInitCompleter!.complete();
-    }
-    
-    // Rerurn and save UUID
-    user_id = storedUserId;
-    log("Loaded user id: $user_id");
-    return storedUserId;
+    throw Exception('User not authenticated');
   }
-
-  /*  Failed attempt at signing in without credentials, for automatic user.id assignment
-  Future<void> signInOrRestoreAnonymousUser() async {
-    final prefs = await SharedPreferences.getInstance();
-    final storedUserId = prefs.getString('anon_user_id');
-
-    if (storedUserId == null)
-    {
-      supabase.auth.signInAnonymously();
-      final session = supabase.auth.currentSession!;
-
-      await prefs.setString('anon_user_id', supabase.auth.currentUser!.id);
-      await prefs.setString('access_token', session.accessToken);
-      await prefs.setString('refresh_token', session.refreshToken!);
-      print("Signed in anonymously!");
-      return;
-    }
-
-    var refresh_token = await prefs.get('refresh_token');
-    if (refresh_token != null)
-    {
-      var response = supabase.auth.recoverSession(refresh_token.toString());
-      print("Response of recovery: " + response.toString());
-    }
-
-  } */
 }

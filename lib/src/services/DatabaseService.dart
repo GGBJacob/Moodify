@@ -90,7 +90,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       final notesResponse = await supabase
       .from('notes')
       .insert([
-        { 'user_id': UserService.instance.user_id, 'mood': mood, 'note':note, 'scores': scores },
+        { 'user_id': UserService().getUserId(), 'mood': mood, 'note':note, 'scores': scores },
       ])
       .select();
 
@@ -132,7 +132,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
   }
 
   Future<List<Map<String, dynamic>>> fetchNotes(DateTime startDate, DateTime endDate) async {
-    String user_id = UserService.instance.user_id;
+    String user_id = UserService().getUserId();
 
     // Fetch notes belonging to users betwen startDate and endDate
     try {
@@ -188,7 +188,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
 
   Future<List<Map<String, dynamic>>> fetchTestResults(DateTime startDate, DateTime endDate) async {
 
-    String user_id = UserService.instance.user_id;
+    String user_id = UserService().getUserId();
     try{
       final response = await Supabase.instance.client
         .from('phq-9_results')
@@ -213,7 +213,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
   {
     try {
 
-    String userId = UserService.instance.user_id;
+    String userId = UserService().getUserId();
 
     // Fetch element count for this week
     return await Supabase.instance.client
@@ -292,7 +292,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       endOfMonth = now;
     }
 
-    String userId = UserService.instance.user_id;
+    String userId = UserService().getUserId();
 
     final response = await Supabase.instance.client
           .from('notes')
@@ -359,15 +359,15 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
     final response = await supabase
       .from('streaks')
       .select('streak')
-      .eq('user_id', UserService.instance.user_id);
+      .eq('user_id', UserService().getUserId());
 
     final updateResponse = await supabase
         .from('streaks')
         .update({'streak': response[0]['streak']+1, 'last_time_active': DateTime.now().toIso8601String()})
-        .eq('user_id', UserService.instance.user_id)
+        .eq('user_id', UserService().getUserId())
         .select();
 
-    log("Updated streak for user ${UserService.instance.user_id}");
+    log("Updated streak for user ${UserService().getUserId()}");
 
     streakValue = updateResponse[0]['streak'];
   }
@@ -379,13 +379,10 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
 
   Future<int> loadStreak() async{
     try{
-      if (UserService.instance.userInitCompleter != null && !UserService.instance.userInitCompleter!.isCompleted) {
-        await UserService.instance.userInitCompleter!.future;
-      }
       final response = await supabase
           .from('streaks')
           .select('streak, last_time_active')
-          .eq('user_id', UserService.instance.user_id);
+          .eq('user_id', UserService().getUserId());
       log("Loaded streak: ${response[0]['streak']??0}");
       
       if (response[0]['last_time_active'] == null) {
@@ -414,7 +411,7 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       final response = await supabase
           .from('streaks')
           .update({'streak': 0})
-          .eq('user_id', UserService.instance.user_id);
+          .eq('user_id', UserService().getUserId());
       log("Streak reset!");
       
       return response[0]['streak'];
