@@ -1,18 +1,14 @@
 import 'package:flutter/material.dart';
 
-class PageTemplate extends StatelessWidget
-{
-
+class PageTemplate extends StatelessWidget {
   final List<Widget> children;
 
   ///Adds a constant padding on top of the page and wraps all `children` in the `Expanded` widget
   const PageTemplate({Key? key, required this.children}) : super(key: key);
 
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.start,
@@ -47,8 +43,7 @@ class PageTemplate extends StatelessWidget
   }
 
   ///Returns a `Column` with the title surrounded by `SizedBox` of constant height on either side
-  static Column buildPageTitle(String title)
-  {
+  static Column buildPageTitle(String title) {
     return Column(
       children: [
         const SizedBox(height: 20),

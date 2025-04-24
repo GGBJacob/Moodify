@@ -8,18 +8,15 @@ class NewNotePage extends StatefulWidget {
 
   @override
   State<NewNotePage> createState() => _NewNotePageState();
-
 }
 
-class _NewNotePageState extends State<NewNotePage>
-{
-  //Time 
+class _NewNotePageState extends State<NewNotePage> {
+  //Time
   final DateTime _now = DateTime.now();
 
   //Moods
   int? _selectedMood;
   bool isSaving = false;
-  
   final List<List<dynamic>> moodPairs = [
     [Icons.sentiment_very_dissatisfied_rounded, Color(0xFF840303)],
     [Icons.sentiment_dissatisfied_rounded, Colors.red],
@@ -27,7 +24,7 @@ class _NewNotePageState extends State<NewNotePage>
     [Icons.sentiment_satisfied_rounded, Color(0xFF91AE00)],
     [Icons.sentiment_very_satisfied_rounded, Colors.green],
   ];
-  
+
   //Emotions and Activities
   List<Map<String, dynamic>> _emotions = [];
   List<Map<String, dynamic>> _activities = [];
@@ -59,7 +56,7 @@ class _NewNotePageState extends State<NewNotePage>
 
   //GlobalKey
   final GlobalKey<FormState> _formGlobalKey = GlobalKey<FormState>();
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -226,10 +223,9 @@ class _NewNotePageState extends State<NewNotePage>
   Widget _moodsBlock() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(moodPairs.length, (index)
-      {
+      children: List.generate(moodPairs.length, (index) {
         return GestureDetector(
-            onTap: (){
+            onTap: () {
               setState(() {
                 _selectedMood = index;
               });
@@ -238,17 +234,16 @@ class _NewNotePageState extends State<NewNotePage>
               moodPairs[index][0],
               size: 50,
               color: _selectedMood == index ? moodPairs[index][1] : Colors.grey,
-            )
-        );
-      }
-      ),
+            ));
+      }),
     );
   }
 
-
-  Widget _interactiveList(List<int> selectedElements, List<Map<String, dynamic>> listElements, VoidCallback onTapFunction)
-  {
-    final filteredElements = listElements.where((element) => selectedElements.contains(element['id'])).toList();
+  Widget _interactiveList(List<int> selectedElements,
+      List<Map<String, dynamic>> listElements, VoidCallback onTapFunction) {
+    final filteredElements = listElements
+        .where((element) => selectedElements.contains(element['id']))
+        .toList();
 
     return Center(
       child: Row(
@@ -265,8 +260,8 @@ class _NewNotePageState extends State<NewNotePage>
                       data: IconThemeData(color:Colors.white, size: 20),
                       child:element['icon'] ?? Icon(Icons.help_outline)),
                     label: Text(element['name']),
-                    backgroundColor: Color(0xFF8C4A60),
-                    labelStyle: TextStyle(color: Colors.white),
+                    backgroundColor: Theme.of(context).colorScheme.surface,
+                    labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
                   ),
                 ),
                 GestureDetector(
@@ -283,27 +278,28 @@ class _NewNotePageState extends State<NewNotePage>
     );
   }
 
-  Future<void> _openInteractiveDialog(String title, List<Map<String, dynamic>> elements, List<int> selectedElements) => showDialog(
-    context: context,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setDialogState) {
-        return AlertDialog(
-          title: Text(title),
-          content: Wrap(
-            spacing: 8.0,
-            children: elements.map((element) {
-              final isSelected = selectedElements.contains(element['id']);
-              return GestureDetector(
-                onTap: () {
-                  // Zmieniamy stan dialogu
-                  setDialogState(() {
-                    if (isSelected) {
-                      selectedElements.remove(element['id']);
-                    } else {
-                      selectedElements.add(element['id']);
-                    }
-                  });
-
+  Future<void> _openInteractiveDialog(String title,
+          List<Map<String, dynamic>> elements, List<int> selectedElements) =>
+      showDialog(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(title),
+              content: Wrap(
+                spacing: 8.0,
+                children: elements.map((element) {
+                  final isSelected = selectedElements.contains(element['id']);
+                  return GestureDetector(
+                    onTap: () {
+                      // Zmieniamy stan dialogu
+                      setDialogState(() {
+                        if (isSelected) {
+                          selectedElements.remove(element['id']);
+                        } else {
+                          selectedElements.add(element['id']);
+                        }
+                      });
                   // Synchronizujemy z głównym widokiem
                   setState(() {});
                 },
@@ -313,26 +309,14 @@ class _NewNotePageState extends State<NewNotePage>
                     child:element['icon'] ?? Icon(Icons.help_outline)),
                   label: Text(element['name']),
                   backgroundColor:
-                  isSelected ? Color(0xFF8C4A60) : Colors.grey[300],
+                  isSelected ? Theme.of(context).colorScheme.surface : Theme.of(context).primaryColor,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black,
+                    color: isSelected ? Theme.of(context).colorScheme.onSurface: Theme.of(context).colorScheme.onPrimary,
                   ),
                 ),
-              );
-            }).toList(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Zamknięcie dialogu
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
-    ),
-  );
-
-
+              ],
+            );
+          },
+        ),
+      );
 }

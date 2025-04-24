@@ -5,21 +5,19 @@ import 'package:moodify/src/components/PageTemplate.dart';
 import 'package:moodify/src/screens/AuthPage.dart';
 import 'package:moodify/src/services/ReportService.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:moodify/src/utils/themes/ThemeProvider';
+import 'package:provider/provider.dart';
 
 import '../components/CustomBlock.dart';
-
 
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
   @override
   State<SettingsPage> createState() => _SettingsPageState();
-
 }
 
-class _SettingsPageState extends State<SettingsPage>
-{
-  bool darkModeOn = false;
+class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _startDateController = TextEditingController();
   final TextEditingController _endDateController = TextEditingController();
   //Data from date picker
@@ -115,13 +113,19 @@ Future<void> _logout() async {
             children: [
               const Icon(Icons.nightlight_outlined),
               const Text(style: TextStyle(fontSize: 20), 'Dark mode'),
+
               Switch(
-                value: darkModeOn,
+                value: Provider.of<ThemeProvider>(context, listen: false).isDarkMode,
                 onChanged: (value) {
-                  setState(() {
-                    darkModeOn = value;
-                  });
+                  Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
                 },
+                thumbIcon: WidgetStateProperty.resolveWith((states) {
+                  return states.contains(WidgetState.selected)
+                      ? Icon(Icons.nightlight_outlined,
+                          color: Theme.of(context).colorScheme.surface)
+                      : Icon(Icons.wb_sunny,
+                          color: Theme.of(context).colorScheme.surface);
+                }),
               )
             ],
           ),
@@ -169,14 +173,12 @@ Future<void> _logout() async {
       });
   }
 
-  void _resetDialog()
-  {
+  void _resetDialog() {
     _startDateError = false;
     _endDateError = false;
     _startDateController.text = '';
     _endDateController.text = 'TODAY';
   }
-
 
   void _validateDialog(BuildContext context, StateSetter dialogSetState)
   {
@@ -214,11 +216,9 @@ Future<void> _logout() async {
     _resetDialog();
   }
 
-  void _exportRaport() async
-  {
+  void _exportRaport() async {
     //Snack bar
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
         duration: Duration(days: 1),
         content: Row(
@@ -227,8 +227,7 @@ Future<void> _logout() async {
             SizedBox(width: 20),
             Text('Generating report...'),
           ],
-        ))
-    );
+        )));
 
     // Generate report
     final ReportService reportService = ReportService();
@@ -240,10 +239,8 @@ Future<void> _logout() async {
     ScaffoldMessenger.of(context).clearSnackBars();
 
     // Display success snack bar
-    if(success)
-    {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           content: Row(
             children: [
@@ -253,49 +250,44 @@ Future<void> _logout() async {
             ],
           ),
           backgroundColor: Colors.green,
-          duration: Duration(seconds: 2)
-         )
-      );
+          duration: Duration(seconds: 2)));
       return;
     }
 
     // Display success task bar
-    ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          behavior: SnackBarBehavior.floating,
-          content: Row(
-            children: [
-              Icon(Icons.close, color: Colors.white),
-              SizedBox(width: 20),
-              Text('Report generation failed!'),
-            ],
-          ),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 2)
-         )
-      );
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        behavior: SnackBarBehavior.floating,
+        content: Row(
+          children: [
+            Icon(Icons.close, color: Colors.white),
+            SizedBox(width: 20),
+            Text('Report generation failed!'),
+          ],
+        ),
+        backgroundColor: Colors.red,
+        duration: Duration(seconds: 2)));
   }
 
   Widget _datePicker(bool start) {
-    return   TextField(
-      controller: start?_startDateController:_endDateController,
+    return TextField(
+      controller: start ? _startDateController : _endDateController,
       decoration: InputDecoration(
-        errorText: start ? (_startDateError ? 'Invalid date' : null) : (_endDateError ? 'Invalid date' : null),
-        errorBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.redAccent)
-        ),
-        labelText: start?'START DATE':'END DATE',
+        errorText: start
+            ? (_startDateError ? 'Invalid date' : null)
+            : (_endDateError ? 'Invalid date' : null),
+        errorBorder:
+            OutlineInputBorder(borderSide: BorderSide(color: Colors.redAccent)),
+        labelText: start ? 'START DATE' : 'END DATE',
         filled: true,
         prefixIcon: Icon(Icons.calendar_today_outlined),
-        enabledBorder: OutlineInputBorder(
-            borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.blue),
+          borderSide: BorderSide(color: Colors.grey),
         ),
       ),
       readOnly: true,
-      onTap: (){
-        _selectDate(start?true:false);
+      onTap: () {
+        _selectDate(start ? true : false);
       },
     );
   }
@@ -305,9 +297,8 @@ Future<void> _logout() async {
         context: context,
         initialDate: DateTime.now(),
         firstDate: DateTime(2000),
-        lastDate: DateTime(2100)
-    );
-    if(_picked == null){
+        lastDate: DateTime(2100));
+    if (_picked == null) {
       return;
     }
     if (start) {
@@ -320,7 +311,6 @@ Future<void> _logout() async {
       setState(() {
         _endDateController.text = _picked.toString().split(" ")[0];
       });
-
     }
   }
 }

@@ -7,7 +7,13 @@ import 'package:moodify/src/services/AuthWrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:app_links/app_links.dart';
-
+import 'package:moodify/src/services/UserService.dart';
+import 'package:moodify/src/utils/themes/ThemeProvider';
+import 'package:moodify/src/utils/themes/darkTheme.dart';
+import 'package:moodify/src/utils/themes/lightTheme.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
@@ -17,7 +23,12 @@ void main() async {
     url: "https://ivaobiqbdwofqlnvrgkt.supabase.co"
   );
   await dotenv.load(fileName: ".env");
-  runApp(MyApp());
+  runApp(
+   ChangeNotifierProvider<ThemeProvider>( 
+      create: (context) => ThemeProvider(), 
+      child: MyApp(),
+    )
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -96,10 +107,7 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       navigatorKey: _navigatorKey,
       title: 'Moodify',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
-        useMaterial3: true,
-      ),
+      theme: Provider.of<ThemeProvider>(context).themeData,
       home: AuthWrapper(authenticatedChild: Menu()),
       onGenerateRoute: (settings) {
         switch (settings.name) {
