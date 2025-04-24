@@ -110,9 +110,11 @@ class _HomePageState extends State<HomePage>
   }
 
 Widget _fifthBlock() {
+  String user_id = UserService.instance.user_id;
   return FutureBuilder<List<Pair<String, double>>>(
     //UserService.instance.user_id!
-    future: CrisisPredictionService.instance.dailyRisksPercents('c61f53e4-4783-4706-bbd1-891c876e414a'),
+    future: CrisisPredictionService.instance.dailyRisksPercents(user_id),
+    //future: CrisisPredictionService.instance.dailyRisksPercents('c61f53e4-4783-4706-bbd1-891c876e414a'),
     builder: (context, snapshot) {
       if (snapshot.connectionState == ConnectionState.waiting) {
         return Center(child: CircularProgressIndicator());
