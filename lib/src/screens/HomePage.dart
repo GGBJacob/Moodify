@@ -1,5 +1,7 @@
 
-  import 'package:flutter/material.dart';
+  import 'dart:developer';
+
+import 'package:flutter/material.dart';
   import 'package:moodify/src/components/CustomBlock.dart';
 import 'package:moodify/src/components/LabeledIconChip.dart';
   import 'package:moodify/src/components/PageTemplate.dart';
@@ -461,7 +463,7 @@ import 'package:moodify/src/components/LabeledIconChip.dart';
     try {
       _risks = await CrisisPredictionService.instance.dailyRisksPercents();
     } catch (e) {
-      print("Error loading risks: $e");
+      log("Error loading risks: $e");
       _risks = [];
     }
 

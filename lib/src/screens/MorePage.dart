@@ -90,7 +90,9 @@ class _MorePageState extends State<MorePage> {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Could not open the webpage')),
+          SnackBar(
+            content: Text('Could not open the webpage'),
+            behavior: SnackBarBehavior.floating),
         );
       }
     },
@@ -140,7 +142,9 @@ class _MorePageState extends State<MorePage> {
                     Navigator.pop(context);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Could not dial ${entry['number']}')),
+                    SnackBar(
+                      content: Text('Could not dial ${entry['number']}'),
+                      behavior: SnackBarBehavior.floating),
                   );
                 }
               },
