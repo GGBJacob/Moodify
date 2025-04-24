@@ -9,7 +9,7 @@ class EncryptionService {
 
   List<int> parsePostgresBytea(String byteaString) {
     if (byteaString.startsWith(r'\x')) {
-      final hex = byteaString.substring(2); // usuń "\x"
+      final hex = byteaString.substring(2);
       return hexToBytes(hex);
     } else {
       throw ArgumentError('Invalid bytea format!');
