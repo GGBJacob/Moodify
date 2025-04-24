@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'UserService.dart';
 
 class TestService {
 
@@ -11,14 +10,14 @@ class TestService {
 
   static TestService get instance => _instance;
 
-  final SupabaseClient supabase = UserService.instance.supabase;
+  final SupabaseClient supabase = Supabase.instance.client;
 
 
   Future<void> saveTest (int points, List<int> selectedAnswers) async {
 
     final String answers = convertAnswersToBits(selectedAnswers);
 
-    String user_id = UserService.instance.user_id;
+    String user_id = Supabase.instance.client.auth.currentUser?.id ?? (throw Exception("User not authenticated"));
 
     // Insert to phq-9 test table
     final response = await supabase
