@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
 import 'package:moodify/src/components/PageTemplate.dart';
+import 'package:moodify/src/services/UserService.dart';
 import 'package:table_calendar/table_calendar.dart';
 import '../services/DatabaseService.dart';
 import 'NoteDetailsPage.dart';
@@ -26,6 +27,7 @@ class _CalendarPageState extends State<CalendarPage>{
   DateTime selected_day = DateTime.now(); //day clicked by user
   DateTime focused_day = DateTime.now(); //determines which month is being displayed
   List<Map<String, dynamic>> selected_notes = [];
+  String? userKey = null;
 
   @override
   void initState() {
@@ -49,8 +51,8 @@ class _CalendarPageState extends State<CalendarPage>{
   } 
 
   Future<void> _loadData() async {
+    userKey = await UserService().getUserKey();
     final summary = await DatabaseService.instance.fetchAndCountMonthMoods(focused_day);
-    
     DateTime first_day = DateTime(focused_day.year, focused_day.month, 1);
     DateTime last_day = DateTime(focused_day.year, focused_day.month + 1, 0); //"zero" day is last day of moth
     final notes_for_month = await DatabaseService.instance.fetchNotes(first_day, last_day);
@@ -236,7 +238,7 @@ class _CalendarPageState extends State<CalendarPage>{
                                 context,
                                 MaterialPageRoute(
                                   builder: (context) =>
-                                      NoteDetailsPage(note: note, date: noteDate(selected_day), image: Image.asset(flowers[note['mood']]))
+                                      NoteDetailsPage(note: note, date: noteDate(selected_day), image: Image.asset(flowers[note['mood']]), userKey: userKey!)
                                 ),
                               );
                             },

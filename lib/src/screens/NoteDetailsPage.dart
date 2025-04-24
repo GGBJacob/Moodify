@@ -1,21 +1,40 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
 import 'package:moodify/src/components/LabeledIconChip.dart';
+import 'package:moodify/src/services/EncryptionService.dart';
 
 class NoteDetailsPage extends StatefulWidget {
   final Map<String, dynamic> note; 
   final String date;
   final Image image;
+  final String userKey;
   
-  const NoteDetailsPage({super.key, required this.note, required this.date, required this.image});
+  const NoteDetailsPage({super.key, required this.note, required this.date, required this.image, required this.userKey});
 
   @override
   State<NoteDetailsPage> createState() => _NoteDetailsPageState();
 }
 
 class _NoteDetailsPageState extends State<NoteDetailsPage> {
+
+  String? _decryptedNote;
+
+  @override
+  void initState() {
+    if(widget.note['note'] == null)
+    {
+      _decryptedNote = null;
+    }
+    else
+    {
+      _decryptedNote = EncryptionService().decryptNote(widget.note['note'], widget.userKey);
+    }
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
+    var noteContent = _decryptedNote;
     var note = widget.note;
     var date = widget.date;
     var image = widget.image;
@@ -146,7 +165,7 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                         child: Text(
-                        (note['note'] ?? '').trim().isNotEmpty ? note['note'].trim() : 'No note added',
+                        (noteContent ?? '').trim().isNotEmpty ? noteContent!.trim() : 'No note added',
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.grey[800],

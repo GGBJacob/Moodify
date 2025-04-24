@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:moodify/src/models/NotesSummary.dart';
+import 'package:moodify/src/services/EncryptionService.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'UserService.dart';
@@ -86,11 +87,12 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
   {
     try{
       final List<double> scores = await ms.assess(note);
+      final String encryptedNote = EncryptionService().encryptNote(note, await UserService().getUserKey());
       // Insert to notes table
       final notesResponse = await supabase
       .from('notes')
       .insert([
-        { 'user_id': UserService().getUserId(), 'mood': mood, 'note':note, 'scores': scores },
+        { 'user_id': UserService().getUserId(), 'mood': mood, 'note':encryptedNote, 'scores': scores },
       ])
       .select();
 
