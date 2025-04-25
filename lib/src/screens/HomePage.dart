@@ -497,28 +497,65 @@ import 'package:moodify/src/components/LabeledIconChip.dart';
                   SizedBox(height: 12),
                   ...topRisks.map((risk) {
                     Color getColor(double value) {
-                      if (value > 75) return Colors.redAccent;
-                      if (value > 50) return Colors.orangeAccent;
-                      if (value > 25) return Colors.yellow.shade600;
-                      return Colors.green;
+                      if (value < 20) return Colors.green;
+                      if (value < 40) return Colors.yellow.shade600;
+                      if (value < 60) return Colors.orangeAccent;
+                      if (value < 80) return Colors.redAccent;
+                      return Colors.red;
                     }
-
+                    Color riskColor = getColor(risk.second);
                     return Card(
-                      color: getColor(risk.second).withValues(alpha: 0.60),
+                      elevation: 4,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
+                        side: BorderSide(
+                          color: riskColor.withValues(alpha: 0.8), 
+                          width: 1.5,
+                        ),
                       ),
                       margin: EdgeInsets.symmetric(vertical: 6),
-                      child: ListTile(
-                        leading: Icon(Icons.warning_amber_rounded, color: getColor(risk.second)),
-                        title: Text(risk.first),
-                        trailing: Text(
-                          "${risk.second.toStringAsFixed(1)}%",
-                          
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Colors.black87,
+                      child: Container(
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            colors: [
+                              riskColor.withValues(alpha: 1.0),
+                              riskColor.withValues(alpha: 0.7),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                        ),
+                        child: ListTile(
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          leading: CircleAvatar(
+                            radius: 20,
+                            backgroundColor: Colors.white.withValues(alpha: 1.0),
+                            child: Container(
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: riskColor.withValues(alpha: 0.4),
+                                    blurRadius: 8,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Icon(
+                                Icons.warning_rounded,
+                                color: riskColor,
+                                size: 26,
+                              ),
+                            ),
+                          ),
+                          title: Text(
+                            risk.first,
+                            style: TextStyle(fontWeight: FontWeight.w500),
+                          ),
+                          trailing: Text(
+                            "${risk.second.toStringAsFixed(1)}%",
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: Colors.black),
                           ),
                         ),
                       ),

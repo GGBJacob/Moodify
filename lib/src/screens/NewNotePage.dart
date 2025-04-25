@@ -292,7 +292,6 @@ class _NewNotePageState extends State<NewNotePage> {
                   final isSelected = selectedElements.contains(element['id']);
                   return GestureDetector(
                     onTap: () {
-                      // Zmieniamy stan dialogu
                       setDialogState(() {
                         if (isSelected) {
                           selectedElements.remove(element['id']);
@@ -300,7 +299,6 @@ class _NewNotePageState extends State<NewNotePage> {
                           selectedElements.add(element['id']);
                         }
                       });
-                  // Synchronizujemy z głównym widokiem
                   setState(() {});
                 },
                 child: Chip(
@@ -311,11 +309,10 @@ class _NewNotePageState extends State<NewNotePage> {
                   backgroundColor:
                   isSelected ? Theme.of(context).colorScheme.surface : Theme.of(context).primaryColor,
                   labelStyle: TextStyle(
-                    color: isSelected ? Theme.of(context).colorScheme.onSurface: Theme.of(context).colorScheme.onPrimary,
-                  ),
-                ),
-              ],
-            );
+                    color: isSelected ? Theme.of(context).colorScheme.onSurface: Theme.of(context).colorScheme.onPrimary),
+                  )
+                );
+                }).toList()));
           },
         ),
       );

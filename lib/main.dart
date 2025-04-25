@@ -7,12 +7,7 @@ import 'package:moodify/src/services/AuthWrapper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:app_links/app_links.dart';
-import 'package:moodify/src/services/UserService.dart';
 import 'package:moodify/src/utils/themes/ThemeProvider';
-import 'package:moodify/src/utils/themes/darkTheme.dart';
-import 'package:moodify/src/utils/themes/lightTheme.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
