@@ -97,7 +97,6 @@ import 'package:moodify/src/components/LabeledIconChip.dart';
     @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
       body: Center(
         child: Column(
           children: [
@@ -246,7 +245,9 @@ import 'package:moodify/src/components/LabeledIconChip.dart';
                   children: [
                     GestureDetector(
                       onTap: showHelpDialog,
-                      child: Icon(Icons.help_outline),
+                      child: Icon(
+                        Icons.help_outline,
+                        color: Colors.grey,),
                     )
                   ],
                 ),

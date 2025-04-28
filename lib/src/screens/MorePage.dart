@@ -44,8 +44,9 @@ class _MorePageState extends State<MorePage> {
                 child: ElevatedButton(
                     onPressed: onPressed,
                     style: ElevatedButton.styleFrom(
-                        surfaceTintColor: tintColor,
-                        backgroundColor: backgroundColor,
+                        surfaceTintColor: tintColor ?? Theme.of(context).colorScheme.onSecondary,
+                        backgroundColor: backgroundColor ?? Theme.of(context).colorScheme.secondary,
+                        foregroundColor: tintColor ?? Theme.of(context).colorScheme.onSecondary,
                         shadowColor: Colors.transparent,
                         padding: EdgeInsets.all(15.0),
                         shape: RoundedRectangleBorder(

@@ -97,7 +97,7 @@ class _CalendarPageState extends State<CalendarPage>{
               SizedBox(height: 5),
               Container(
                 decoration: BoxDecoration(
-                  color: Color(0xFFFFF7F7),
+                  color: Theme.of(context).colorScheme.secondary,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(

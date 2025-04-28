@@ -8,7 +8,7 @@ class ThemeProvider with ChangeNotifier {
   late bool _isDarkMode;
 
   ThemeProvider() {
-    var brightness = SchedulerBinding.instance.platformDispatcher.platformBrightness;
+    var brightness = Brightness.dark; //SchedulerBinding.instance.platformDispatcher.platformBrightness;
     _themeData = brightness == Brightness.light ? lightTheme : darkTheme;
     _isDarkMode = brightness == Brightness.dark;
   }

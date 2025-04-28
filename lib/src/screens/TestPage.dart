@@ -134,6 +134,7 @@ class _TestPageState extends State<TestPage> {
                 title: Text(option),
                 value: optionIndex,
                 groupValue: selectedAnswers[index],
+                activeColor: Theme.of(context).colorScheme.onSecondary,
                 onChanged: (int? value) {
                   setState(() {
                     selectedAnswers[index] = value!;

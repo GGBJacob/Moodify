@@ -111,10 +111,10 @@ Future<void> _logout() async {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.nightlight_outlined),
-              const Text(style: TextStyle(fontSize: 20), 'Dark mode'),
+              const Text(style: TextStyle(fontSize: 20), 'Theme'),
 
               Switch(
+                
                 value: Provider.of<ThemeProvider>(context, listen: false).isDarkMode,
                 onChanged: (value) {
                   Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
@@ -124,7 +124,7 @@ Future<void> _logout() async {
                       ? Icon(Icons.nightlight_outlined,
                           color: Theme.of(context).colorScheme.surface)
                       : Icon(Icons.wb_sunny,
-                          color: Theme.of(context).colorScheme.surface);
+                          color: Color.fromARGB(255, 255, 196, 0));
                 }),
               )
             ],

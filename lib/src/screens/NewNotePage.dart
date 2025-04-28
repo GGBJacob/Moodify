@@ -257,11 +257,11 @@ class _NewNotePageState extends State<NewNotePage> {
                 ...filteredElements.map(
                   (element) => Chip(
                     avatar: IconTheme(
-                      data: IconThemeData(color:Colors.white, size: 20),
+                      data: IconThemeData(color:Theme.of(context).colorScheme.secondary, size: 20),
                       child:element['icon'] ?? Icon(Icons.help_outline)),
                     label: Text(element['name']),
-                    backgroundColor: Theme.of(context).colorScheme.surface,
-                    labelStyle: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    backgroundColor: Theme.of(context).colorScheme.onSecondary,
+                    labelStyle: TextStyle(color: Theme.of(context).colorScheme.secondary),
                   ),
                 ),
                 GestureDetector(
@@ -269,7 +269,6 @@ class _NewNotePageState extends State<NewNotePage> {
                   child: Icon(
                     Icons.add_circle_outline_rounded,
                     size: 50,
-                    color: Colors.black,
                   ),
                 )]
               )
@@ -302,14 +301,15 @@ class _NewNotePageState extends State<NewNotePage> {
                   setState(() {});
                 },
                 child: Chip(
+                  side: BorderSide(color: isSelected ? Theme.of(context).colorScheme.onSecondary : Theme.of(context).colorScheme.tertiary),
                   avatar: IconTheme(
-                    data: IconThemeData(color: isSelected ? Colors.white : Colors.black, size: 20),
+                    data: IconThemeData(color: isSelected ? Theme.of(context).colorScheme.secondary: Theme.of(context).colorScheme.onTertiary, size: 20),
                     child:element['icon'] ?? Icon(Icons.help_outline)),
                   label: Text(element['name']),
                   backgroundColor:
-                  isSelected ? Theme.of(context).colorScheme.surface : Theme.of(context).primaryColor,
+                  isSelected ? Theme.of(context).colorScheme.onSecondary : Theme.of(context).colorScheme.tertiary,
                   labelStyle: TextStyle(
-                    color: isSelected ? Theme.of(context).colorScheme.onSurface: Theme.of(context).colorScheme.onPrimary),
+                    color: isSelected ? Theme.of(context).colorScheme.secondary: Theme.of(context).colorScheme.onTertiary),
                   )
                 );
                 }).toList()));
