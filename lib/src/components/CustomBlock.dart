@@ -21,7 +21,7 @@ class CustomBlock extends StatelessWidget {
                 ),
               ],
             ),
-            padding: EdgeInsets.all(15.0),
+            padding: EdgeInsets.all(14.0),
             child:child
         )
     );

@@ -1,9 +1,6 @@
-import 'dart:io';
 import 'dart:math';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:uuid/uuid.dart';
 import 'UserService.dart';
-import 'MentalService.dart';
 import '../utils/Pair.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'dart:convert';
@@ -25,10 +22,11 @@ class CrisisPredictionService
 
   static CrisisPredictionService get instance => _instance;
 
-  final SupabaseClient supabase = UserService.instance.supabase;
+  final SupabaseClient supabase = Supabase.instance.client;
   
-  Future<List<Pair<String, double>>> calculateDailyRisks(String user_uuid) async
+  Future<List<Pair<String, double>>> calculateDailyRisks() async
   {
+    String user_uuid = UserService().getUserId();
     List<Pair<DateTime, List<double>>> moods = await fetchMoods(user_uuid);
     List<Pair<DateTime, List<double>>> points = await fetchPoints(user_uuid);
     List<dynamic> gathered_moods_points = connect(moods, points);
@@ -39,9 +37,9 @@ class CrisisPredictionService
     List<List<Pair<DateTime, double>>> average_scores_for_headers = calculateAverageScoresForHeaders(scores, average_moods_points, embedding_headers.length, 3);
     return calculateRisksForHeaders(average_scores_for_headers, embedding_headers);
   }
-  Future<List<Pair<String, double>>> dailyRisksPercents(String user_uuid) async
+  Future<List<Pair<String, double>>> dailyRisksPercents() async
   {
-    List<Pair<String, double>> transformedRisks = await calculateDailyRisks(user_uuid);
+    List<Pair<String, double>> transformedRisks = await calculateDailyRisks();
     for (int i=0; i<transformedRisks.length; i++)
     {
       transformedRisks[i].setSecond(transformedRisks[i].getSecond() * 100); 
@@ -257,16 +255,13 @@ Future<List<Pair<DateTime, List<double>>>> fetchScores(String user_uuid) async {
 }
 List<Pair<DateTime, List<double>>> normaliseScores(List<Pair<DateTime, List<double>>> scores)
 {
-  for (int j=0;j < scores.length;j++ )
-  {
-    Pair<DateTime, List<double>> score = scores[j];
-    for (int i = 0; i < score.second.length; i++)
+    for (int moment = 0; moment < scores.length; moment++)
     {
-      double value = score.second[i];
-      score.second[i] = (max(min(0.5, value), 0.1)-0.1)*2.5;
+      for (int score_index = 0; score_index < scores[moment].second.length; score_index++)
+      {
+        scores[moment].second[score_index]=sqrt(scores[moment].second[score_index]);
+      }
     }
-    scores[j] = score;
-  }
   return scores;
 }
 }
@@ -275,9 +270,9 @@ List<double> calculateRiskValues(List<Pair<DateTime, double>> data,
     {int t1 = 6}) {
   int t2 = data.length;
   int time_window = t1;
-  double k = 0.03 * t1.toDouble() * t1.toDouble() -
-      0.85 * t1.toDouble() +
-      6.5; // polynomial interpolation of few desired values, done to define
+  double k = 0.031 * t1.toDouble() * t1.toDouble() -
+      0.86 * t1.toDouble() +
+      6.6; // polynomial interpolation of few desired values, done to define
   // less parameteres, might be subject to a change
   double maxValue = 0.0;
   for (Pair pair in data) {
