@@ -46,7 +46,7 @@ class _MorePageState extends State<MorePage> {
                     style: ElevatedButton.styleFrom(
                         surfaceTintColor: tintColor ?? Theme.of(context).colorScheme.onSecondary,
                         backgroundColor: backgroundColor ?? Theme.of(context).colorScheme.secondary,
-                        foregroundColor: tintColor ?? Theme.of(context).colorScheme.onSecondary,
+                        foregroundColor: tintColor ?? ( Theme.of(context).brightness == Brightness.light ? Theme.of(context).colorScheme.onSecondary : Theme.of(context).colorScheme.tertiary ),
                         shadowColor: Colors.transparent,
                         padding: EdgeInsets.all(15.0),
                         shape: RoundedRectangleBorder(

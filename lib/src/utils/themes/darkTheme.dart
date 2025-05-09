@@ -1,82 +1,52 @@
 import 'package:flutter/material.dart';
-import 'package:moodify/src/utils/themes/lightTheme.dart';
-
-//colors
-const Color backgroundColorDark = Color(0xFF1C3031);
-const Color mainColorDark = Color(0xFF354B4D);
-const Color textColorDark = Color(0xFFF0F0F0);
-const Color surfaceColorDark = Color(0xFF4B707F);
-const Color textOnSurfaceColorDark = Color(0xFFDCE4EC);
-const Color secondaryColorDark = Color(0xFF1C3031);
-const Color textOnSecondaryColorDark = Color(0xFF8C4A60);
-const Color accentColorDark = Color(0xFFDCE4EC);
-const Color textOnAccentColorDark = Color(0xFF1C3031);
+import 'package:moodify/src/utils/themes/colors.dart';
+import 'package:moodify/src/utils/themes/switchTheme.dart';
 
 ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
   primaryColor: mainColorDark,
-  scaffoldBackgroundColor: backgroundColorDark,
+  scaffoldBackgroundColor: darkColor,
   useMaterial3: true,
   colorScheme: ColorScheme.dark(
-    primary: mainColorDark,
-    onPrimary: textColorDark,
-    surface: surfaceColorDark,
-    onSurface: textOnSurfaceColorDark,
-    secondary: secondaryColorDark,
-    onSecondary: textOnSecondaryColorDark,
-    tertiary: accentColorDark,
-    onTertiary: textOnAccentColorDark
-  ),
+      primary: mainColorDark,
+      onPrimary: textColorDark,
+      surface: surfaceColorDark,
+      onSurface: textOnSurfaceColorDark,
+      secondary: darkColor,
+      onSecondary: blueish,
+      tertiary: accentColorDark,
+      onTertiary: darkColor),
   textTheme: TextTheme(
     titleLarge: TextStyle(color: textColorDark),
     titleMedium: TextStyle(color: textColorDark),
     titleSmall: TextStyle(color: textColorDark),
   ),
   elevatedButtonTheme: ElevatedButtonThemeData(
-    style: ElevatedButton.styleFrom(
-      backgroundColor: textOnSecondaryColorDark,
-      foregroundColor: secondaryColorDark
-    )
-  ),
+      style: ElevatedButton.styleFrom(
+          backgroundColor: blueish, foregroundColor: accentColorDark)),
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
-      backgroundColor: textOnSecondaryColorDark,
-      foregroundColor: secondaryColorDark // kolor tekstu
-    ),
+        backgroundColor: blueish,
+        foregroundColor: textOnSurfaceColorDark // kolor tekstu
+        ),
   ),
   floatingActionButtonTheme: FloatingActionButtonThemeData(
-    backgroundColor: accentColorDark,
-    foregroundColor: textOnAccentColorDark
-  ),
-   switchTheme: SwitchThemeData(
-    thumbColor: WidgetStateProperty.resolveWith((states) {
-      return states.contains(WidgetState.selected)
-          ? textOnSurfaceColorDark
-          : const Color.fromARGB(255, 252, 255, 88);
-    }),
-    trackColor: WidgetStateProperty.resolveWith((states) {
-      return states.contains(WidgetState.selected)
-          ? surfaceColorDark
-          : const Color.fromARGB(255, 117, 215, 250);
-    }),
-    trackOutlineColor: WidgetStateProperty.resolveWith((states) {
-      return states.contains(WidgetState.selected)
-          ? surfaceColorDark
-          : const Color.fromARGB(255, 117, 215, 250);
-    }),
-  ),
+      backgroundColor: accentColorDark, foregroundColor: darkColor),
+  switchTheme: switchTheme,
   iconTheme: IconThemeData(color: textColorDark),
   bottomNavigationBarTheme: BottomNavigationBarThemeData(
       backgroundColor: surfaceColorDark,
       selectedItemColor: textOnSurfaceColorDark,
       unselectedItemColor: mainColorDark),
-  appBarTheme: AppBarTheme(
-    backgroundColor: textOnSecondaryColorDark,
-    foregroundColor: secondaryColorDark
-  ),
+  appBarTheme:
+      AppBarTheme(backgroundColor: blueish, foregroundColor: accentColorDark),
   chipTheme: ChipThemeData(
-      backgroundColor: textOnSecondaryColorDark,
-      labelStyle: TextStyle(color: secondaryColorDark)),
+      backgroundColor: blueish,
+      labelStyle: TextStyle(color: textOnSurfaceColorDark),
+      side: BorderSide(
+        color: blueish
+      )
+      ),
   dialogTheme: DialogTheme(
     backgroundColor: mainColorDark,
   ),
@@ -87,6 +57,6 @@ ThemeData darkTheme = ThemeData(
       ),
       labelStyle: TextStyle(color: textColorDark)),
   cardTheme: CardTheme(
-    color: secondaryColorDark,
+    color: darkColor,
   ),
 );

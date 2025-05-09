@@ -6,6 +6,7 @@ import 'package:table_calendar/table_calendar.dart';
 import '../services/DatabaseService.dart';
 import 'NoteDetailsPage.dart';
 import '../utils/DateManipulations.dart';
+import 'package:moodify/src/utils/themes/colors.dart';
 
 class CalendarPage extends StatefulWidget {
 
@@ -165,9 +166,11 @@ class _CalendarPageState extends State<CalendarPage>{
                               Container(
                                 width: 60,
                                 decoration: BoxDecoration(
-                                  color: const Color.fromARGB(255, 149, 49, 97).withAlpha(100), 
+                                  color: Theme.of(context).brightness == Brightness.light ? selectedLight : selectedDark ,
                                   shape: BoxShape.circle, 
-                                  border: Border.all(color: const Color.fromARGB(255, 92, 21, 76), width: 2), 
+                                  border: Border.all(
+                                    color: Theme.of(context).brightness == Brightness.light ? selectedBorderLight : selectedBorderDark, 
+                                    width: 2), 
                                 ),
                                 child: 
                                 Center(
@@ -176,7 +179,7 @@ class _CalendarPageState extends State<CalendarPage>{
                                 day.day.toString(),
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: const Color.fromARGB(255, 79, 2, 54), 
+                                  color: Theme.of(context).brightness == Brightness.light ? textLight : textDark, 
                                 ),
                               ))),
                               getMoodIconWidget(dailyAverageMood?[day.day]),
@@ -191,9 +194,11 @@ class _CalendarPageState extends State<CalendarPage>{
                               Container(
                                 width: 60,
                                 decoration: BoxDecoration(
-                                  color: const Color.fromARGB(255, 179, 103, 139).withAlpha(100), 
+                                  color: Theme.of(context).brightness == Brightness.light ? todayLight : todayDark, 
                                   shape: BoxShape.circle, 
-                                  border: Border.all(color: const Color.fromARGB(255, 210, 154, 197), width: 2), 
+                                  border: Border.all(
+                                    color: Theme.of(context).brightness == Brightness.light ? todayBorderLight : todayBorderDark, 
+                                    width: 2), 
                                 ),
                                 child: 
                                 Center(
@@ -202,7 +207,7 @@ class _CalendarPageState extends State<CalendarPage>{
                                 day.day.toString(),
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
-                                  color: const Color.fromARGB(255, 79, 2, 54), 
+                                  color: Theme.of(context).brightness == Brightness.light ? textLight : textDark, 
                                 ),
                               ))),
                               getMoodIconWidget(dailyAverageMood?[day.day]),

@@ -111,7 +111,7 @@ Future<void> _logout() async {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text(style: TextStyle(fontSize: 20), 'Theme'),
+              const Text(style: TextStyle(fontSize: 20), 'Change theme'),
 
               Switch(
                 
@@ -139,7 +139,7 @@ Future<void> _logout() async {
             child: const Text('Export report'),
           ),
           const SizedBox(height: 20),
-          _buildLogoutButton(), // Dodany przycisk wylogowania
+          _buildLogoutButton(), 
         ],
       )),
       PageTemplate.buildBottomSpacing(context)

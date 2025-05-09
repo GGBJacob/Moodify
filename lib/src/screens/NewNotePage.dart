@@ -61,7 +61,6 @@ class _NewNotePageState extends State<NewNotePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: Colors.grey[200],
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -309,7 +308,7 @@ class _NewNotePageState extends State<NewNotePage> {
                   backgroundColor:
                   isSelected ? Theme.of(context).colorScheme.onSecondary : Theme.of(context).colorScheme.tertiary,
                   labelStyle: TextStyle(
-                    color: isSelected ? Theme.of(context).colorScheme.secondary: Theme.of(context).colorScheme.onTertiary),
+                    color: isSelected ? Theme.of(context).colorScheme.tertiary: Theme.of(context).colorScheme.onTertiary),
                   )
                 );
                 }).toList()));
