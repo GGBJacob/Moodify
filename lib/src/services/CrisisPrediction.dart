@@ -255,11 +255,12 @@ Future<List<Pair<DateTime, List<double>>>> fetchScores(String user_uuid) async {
 }
 List<Pair<DateTime, List<double>>> normaliseScores(List<Pair<DateTime, List<double>>> scores)
 {
+    double exp = 2/3;
     for (int moment = 0; moment < scores.length; moment++)
     {
       for (int score_index = 0; score_index < scores[moment].second.length; score_index++)
       {
-        scores[moment].second[score_index]=sqrt(scores[moment].second[score_index]);
+        scores[moment].second[score_index]=pow(scores[moment].second[score_index], exp).toDouble();
       }
     }
   return scores;
@@ -300,7 +301,11 @@ List<double> calculateRiskValues(List<Pair<DateTime, double>> data,
 
   List<double> risk = [];
   for (double value in normalisedDerivatives) {
-    risk.add(max(min(abs(value) / k, 1), 0));
+    if (value.isNaN)
+    {
+      return [];
+    }
+    risk.add(pow(max(min(abs(value) / k, 1), 0),2).toDouble());
   }
   return risk;
 }
