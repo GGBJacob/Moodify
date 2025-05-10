@@ -4,6 +4,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:moodify/src/components/Menu.dart';
 import 'package:moodify/src/screens/EmailVerificationPage.dart';
 import 'package:moodify/src/services/AuthWrapper.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:app_links/app_links.dart';
@@ -78,6 +79,15 @@ class _MyAppState extends State<MyApp> {
     }
   }
 
+  Future<void> _loadDarkMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    bool isDarkMode = prefs.getBool('isDarkMode') ?? false;
+    if (isDarkMode)
+    {
+      Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+    }
+  }
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -88,6 +98,7 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     _initDeepLinks();
+    _loadDarkMode();
   }
 
   @override

@@ -110,8 +110,9 @@ Future<void> _logout() async {
           const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
+            spacing: 5,
             children: [
-              const Text(style: TextStyle(fontSize: 20), 'Change theme'),
+              const Text(style: TextStyle(fontSize: 20), 'Theme'),
 
               Switch(
                 

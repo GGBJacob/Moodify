@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:moodify/src/utils/themes/darkTheme.dart';
 import 'package:moodify/src/utils/themes/lightTheme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 
 class ThemeProvider with ChangeNotifier {
   late ThemeData _themeData;
   late bool _isDarkMode;
 
   ThemeProvider() {
-    var brightness = Brightness.dark; //SchedulerBinding.instance.platformDispatcher.platformBrightness;
     _themeData = lightTheme;
     _isDarkMode = false;
   }
@@ -28,6 +28,11 @@ class ThemeProvider with ChangeNotifier {
       themeData = darkTheme;
     }
     _isDarkMode=!_isDarkMode;
+    setDarkMode(_isDarkMode);
   }
 
+  void setDarkMode(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkMode', value);
+  }
 }
