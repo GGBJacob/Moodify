@@ -40,7 +40,6 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
     var image = widget.image;
 
     return Scaffold(
-      backgroundColor: Colors.grey[200],
       appBar: AppBar(
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -100,7 +99,7 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
                           (note['notes_emotions'] as List).isEmpty
                             ? Text(
                                 'No emotions added',
-                                style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                               )
                             : Wrap(
                                 spacing: 8.0, 
@@ -130,7 +129,7 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
                     (note['notes_activities'] as List).isEmpty
                       ? Text(
                           'No activities added',
-                          style: TextStyle(fontSize: 16, color: Colors.grey[700]),
+                          style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                         )
                       : Wrap(
                           spacing: 8.0,
@@ -151,7 +150,6 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
-                          color: Colors.pink[900],
                         ),
                       ),
                     ),
@@ -161,14 +159,13 @@ class _NoteDetailsPageState extends State<NoteDetailsPage> {
                         width: double.infinity, 
                         padding: const EdgeInsets.all(12.0),
                         decoration: BoxDecoration(
-                          color: Color(0xFFFFF0F5), 
+                          color: Theme.of(context).colorScheme.surface , 
                           borderRadius: BorderRadius.circular(12.0),
                         ),
                         child: Text(
                         (noteContent ?? '').trim().isNotEmpty ? noteContent!.trim() : 'No note added',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.grey[800],
                           ),
                         ),
                       ),
