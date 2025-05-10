@@ -7,7 +7,7 @@ import 'package:moodify/src/components/LabeledIconChip.dart';
   import 'package:moodify/src/components/PageTemplate.dart';
   import 'package:moodify/src/models/NotesSummary.dart';
   import 'package:moodify/src/services/DatabaseService.dart';
-  import '../services/TrendAnalysis.dart';
+  import '../services/CrisisPrediction.dart';
   import '../utils/Pair.dart';
 
   class HomePage extends StatefulWidget {
