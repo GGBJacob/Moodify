@@ -1,0 +1,38 @@
+import 'package:flutter/material.dart';
+import 'package:moodify/src/utils/themes/darkTheme.dart';
+import 'package:moodify/src/utils/themes/lightTheme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+
+class ThemeProvider with ChangeNotifier {
+  late ThemeData _themeData;
+  late bool _isDarkMode;
+
+  ThemeProvider() {
+    _themeData = lightTheme;
+    _isDarkMode = false;
+  }
+
+  ThemeData get themeData => _themeData;
+  bool get isDarkMode => _isDarkMode;
+
+  set themeData(ThemeData themeData){
+    _themeData = themeData;
+    notifyListeners();
+  }
+
+  void toggleTheme() {
+    if(_isDarkMode) {
+      themeData = lightTheme; 
+    } else {
+      themeData = darkTheme;
+    }
+    _isDarkMode=!_isDarkMode;
+    setDarkMode(_isDarkMode);
+  }
+
+  void setDarkMode(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkMode', value);
+  }
+}

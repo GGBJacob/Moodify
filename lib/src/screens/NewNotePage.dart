@@ -1,38 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
-import '../services/NotesService.dart';
-
+import '../services/DatabaseService.dart';
+import '../utils/DateManipulations.dart';
 
 class NewNotePage extends StatefulWidget {
   const NewNotePage({super.key});
 
   @override
   State<NewNotePage> createState() => _NewNotePageState();
-
 }
 
-class _NewNotePageState extends State<NewNotePage>
-{
-  //Time 
+class _NewNotePageState extends State<NewNotePage> {
+  //Time
   final DateTime _now = DateTime.now();
-  final List<String> _months = [
-    "January",
-    "February",
-    "March",
-    "April",
-    "May",
-    "June",
-    "July",
-    "August",
-    "September",
-    "October",
-    "November",
-    "December"
-  ];
 
   //Moods
   int? _selectedMood;
-  
+  bool isSaving = false;
   final List<List<dynamic>> moodPairs = [
     [Icons.sentiment_very_dissatisfied_rounded, Color(0xFF840303)],
     [Icons.sentiment_dissatisfied_rounded, Colors.red],
@@ -40,7 +24,7 @@ class _NewNotePageState extends State<NewNotePage>
     [Icons.sentiment_satisfied_rounded, Color(0xFF91AE00)],
     [Icons.sentiment_very_satisfied_rounded, Colors.green],
   ];
-  
+
   //Emotions and Activities
   List<Map<String, dynamic>> _emotions = [];
   List<Map<String, dynamic>> _activities = [];
@@ -55,8 +39,8 @@ class _NewNotePageState extends State<NewNotePage>
 
   Future<void> _loadData() async {
     try {
-      final emotions = await NotesService.instance.fetchEmotions();
-      final activities = await NotesService.instance.fetchActivities();
+      final emotions = await DatabaseService.instance.fetchEmotions();
+      final activities = await DatabaseService.instance.fetchActivities();
       setState(() {
         _emotions = emotions;
         _activities = activities;
@@ -72,21 +56,23 @@ class _NewNotePageState extends State<NewNotePage>
 
   //GlobalKey
   final GlobalKey<FormState> _formGlobalKey = GlobalKey<FormState>();
-  
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[200],
-      floatingActionButtonLocation: FloatingActionButtonLocation.startTop,
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.pop(context),
-        child: Icon(Icons.arrow_back),
-        foregroundColor: Colors.black,
-        backgroundColor: Colors.white,
-        heroTag: "return", 
+      resizeToAvoidBottomInset: true,
+      appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: isSaving ? null : () {
+            Navigator.pop(context);
+          },
+        ),
+        title: Text('New note'), 
       ),
-      body: Center(
-        child: SingleChildScrollView(
+      body:
+        SingleChildScrollView(
+          child: Align(alignment: Alignment.topCenter,
           child:  Column(
             children: [
           SizedBox(height:20),
@@ -100,27 +86,27 @@ class _NewNotePageState extends State<NewNotePage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           //Date
-                          Text(style: TextStyle(fontSize: 45),
-                              '${_months[_now.month-1]} ${_now.day},  ${_now.year}'),
+                          Text(style: TextStyle(fontSize: 30),
+                              '${monthToString(_now.month)} ${_now.day}${getDateEnding(_now.day)},  ${_now.year}'),
                           SizedBox(height:20),
 
                           //Mood
-                          Text(style: TextStyle(fontSize: 30),'Mood:'),
+                          Text(style: TextStyle(fontSize: 20),'Mood:'),
                           _moodsBlock(),
                           SizedBox(height:20),
 
                           //Emotions
-                          Text(style: TextStyle(fontSize: 30),'Emotions:'),
+                          Text(style: TextStyle(fontSize: 20),'Emotions:'),
                           _interactiveList(_selectedEmotions ,_emotions, () => _openInteractiveDialog("Emotions", _emotions, _selectedEmotions)), // Passing interactive dialog as reference
                           SizedBox(height:20),
 
                           //Activities
-                          Text(style: TextStyle(fontSize: 30),'Activities:'),
+                          Text(style: TextStyle(fontSize: 20),'Activities:'),
                           _interactiveList(_selectedActivities ,_activities, () => _openInteractiveDialog("Activities", _activities, _selectedActivities)), // Passing interactive dialog as reference
                           SizedBox(height:20),
 
                           //Note
-                          Text(style: TextStyle(fontSize: 30),'Note:'),
+                          Text(style: TextStyle(fontSize: 20),'Note:'),
                           TextFormField(
                             decoration: InputDecoration(labelText: "How was your day?",
                               border: OutlineInputBorder()),
@@ -134,18 +120,13 @@ class _NewNotePageState extends State<NewNotePage>
 
                           //Save button
                           ElevatedButton(
-                              onPressed: (){
+                              onPressed: isSaving? null : (){
                                 //Note output
                                 _textFormOutput = _textController.text;
 
                                 //Validation
                                 if(_formGlobalKey.currentState!.validate() && _selectedMood!=null){
-                                  _formGlobalKey.currentState!.save();
-                                  NotesService.instance.saveNote(_selectedMood!, _selectedEmotions, _selectedActivities, _textFormOutput);
-                                  Navigator.pop(context);
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(content: Text("Added!"), behavior: SnackBarBehavior.floating), // "floating" prevents moving of the "addNote" button
-                                  );
+                                  _handleSaveNote();
                                 }
                               },
                               style: FilledButton.styleFrom(
@@ -164,17 +145,86 @@ class _NewNotePageState extends State<NewNotePage>
               SizedBox(height:20)]
       ),
       )
-      )
+        ),
+      );
+  }
+
+  Future<void> _handleSaveNote() async {
+    setState(() {
+      isSaving = true;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+      ),
+      content: Row(
+        children: [
+          CircularProgressIndicator(color: Colors.white),
+          SizedBox(width: 20),
+          Text("Saving..."),
+        ],
+      ),
+      behavior: SnackBarBehavior.floating,
+      backgroundColor: Colors.pinkAccent,
+    ),
     );
+
+    _formGlobalKey.currentState!.save();
+    
+    int? res = await DatabaseService.instance.saveNote(
+      _selectedMood!,
+      _selectedEmotions,
+      _selectedActivities,
+      _textFormOutput
+    );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).hideCurrentSnackBar(); 
+    if (res != null)
+    {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+          ),
+          content: Row(
+            children:[
+              Icon(Icons.check_circle, color: Colors.white),
+              SizedBox(width: 20),
+              Text("Note added!"),]),
+          behavior: SnackBarBehavior.floating,
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+    else
+    {
+    Navigator.pop(context);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12.0),
+        ),
+        content: 
+        Row(children: [
+          Icon(Icons.close, color: Colors.white),
+          SizedBox(width: 20),
+          Text("Failed to add note!"),]),
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.red,
+      ),
+    );
+    }
   }
 
   Widget _moodsBlock() {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
-      children: List.generate(moodPairs.length, (index)
-      {
+      children: List.generate(moodPairs.length, (index) {
         return GestureDetector(
-            onTap: (){
+            onTap: () {
               setState(() {
                 _selectedMood = index;
               });
@@ -183,17 +233,16 @@ class _NewNotePageState extends State<NewNotePage>
               moodPairs[index][0],
               size: 50,
               color: _selectedMood == index ? moodPairs[index][1] : Colors.grey,
-            )
-        );
-      }
-      ),
+            ));
+      }),
     );
   }
 
-
-  Widget _interactiveList(List<int> selectedElements, List<Map<String, dynamic>> listElements, VoidCallback onTapFunction)
-  {
-    final filteredElements = listElements.where((element) => selectedElements.contains(element['id'])).toList();
+  Widget _interactiveList(List<int> selectedElements,
+      List<Map<String, dynamic>> listElements, VoidCallback onTapFunction) {
+    final filteredElements = listElements
+        .where((element) => selectedElements.contains(element['id']))
+        .toList();
 
     return Center(
       child: Row(
@@ -206,9 +255,12 @@ class _NewNotePageState extends State<NewNotePage>
               children: [
                 ...filteredElements.map(
                   (element) => Chip(
+                    avatar: IconTheme(
+                      data: IconThemeData(color:Theme.of(context).colorScheme.secondary, size: 20),
+                      child:element['icon'] ?? Icon(Icons.help_outline)),
                     label: Text(element['name']),
-                    backgroundColor: Colors.blue,
-                    labelStyle: TextStyle(color: Colors.white),
+                    backgroundColor: Theme.of(context).colorScheme.onSecondary,
+                    labelStyle: TextStyle(color: Theme.of(context).colorScheme.secondary),
                   ),
                 ),
                 GestureDetector(
@@ -216,7 +268,6 @@ class _NewNotePageState extends State<NewNotePage>
                   child: Icon(
                     Icons.add_circle_outline_rounded,
                     size: 50,
-                    color: Colors.black,
                   ),
                 )]
               )
@@ -225,53 +276,43 @@ class _NewNotePageState extends State<NewNotePage>
     );
   }
 
-  Future<void> _openInteractiveDialog(String title, List<Map<String, dynamic>> elements, List<int> selectedElements) => showDialog(
-    context: context,
-    builder: (context) => StatefulBuilder(
-      builder: (context, setDialogState) {
-        return AlertDialog(
-          title: Text(title),
-          content: Wrap(
-            spacing: 8.0,
-            children: elements.map((element) {
-              final isSelected = selectedElements.contains(element['id']);
-              return GestureDetector(
-                onTap: () {
-                  // Zmieniamy stan dialogu
-                  setDialogState(() {
-                    if (isSelected) {
-                      selectedElements.remove(element['id']);
-                    } else {
-                      selectedElements.add(element['id']);
-                    }
-                  });
-
-                  // Synchronizujemy z głównym widokiem
+  Future<void> _openInteractiveDialog(String title,
+          List<Map<String, dynamic>> elements, List<int> selectedElements) =>
+      showDialog(
+        context: context,
+        builder: (context) => StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(title),
+              content: Wrap(
+                spacing: 8.0,
+                children: elements.map((element) {
+                  final isSelected = selectedElements.contains(element['id']);
+                  return GestureDetector(
+                    onTap: () {
+                      setDialogState(() {
+                        if (isSelected) {
+                          selectedElements.remove(element['id']);
+                        } else {
+                          selectedElements.add(element['id']);
+                        }
+                      });
                   setState(() {});
                 },
                 child: Chip(
+                  side: BorderSide(color: isSelected ? Theme.of(context).colorScheme.onSecondary : Theme.of(context).colorScheme.tertiary),
+                  avatar: IconTheme(
+                    data: IconThemeData(color: isSelected ? Theme.of(context).colorScheme.secondary: Theme.of(context).colorScheme.onTertiary, size: 20),
+                    child:element['icon'] ?? Icon(Icons.help_outline)),
                   label: Text(element['name']),
                   backgroundColor:
-                  isSelected ? Colors.blue : Colors.grey[300],
+                  isSelected ? Theme.of(context).colorScheme.onSecondary : Theme.of(context).colorScheme.tertiary,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.black,
-                  ),
-                ),
-              );
-            }).toList(),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Zamknięcie dialogu
-              },
-              child: Text("OK"),
-            ),
-          ],
-        );
-      },
-    ),
-  );
-
-
+                    color: isSelected ? Theme.of(context).colorScheme.tertiary: Theme.of(context).colorScheme.onTertiary),
+                  )
+                );
+                }).toList()));
+          },
+        ),
+      );
 }

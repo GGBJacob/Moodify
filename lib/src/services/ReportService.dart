@@ -1,17 +1,17 @@
 import 'dart:developer';
+import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
+import 'package:moodify/src/services/DatabaseService.dart';
 import 'package:moodify/src/services/TestService.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:supabase_flutter/supabase_flutter.dart';
-import 'UserService.dart';
 
 class ReportService {
   Map<int, int> _moodCounts = {};
   Map<String, int> _emotionCounts = {};
   Map<String, int> _activityCounts = {};
-  int _noteCount = 0, _notesSkipped = 0;
+  int _noteCount = 0;
   DateTime _startDate = DateTime(2025, 1, 20), _endDate = DateTime.now();
 
   void init(DateTime startDate, DateTime endDate) {
@@ -19,43 +19,8 @@ class ReportService {
     _endDate = DateTime(endDate.year, endDate.month, endDate.day, 23, 59);
   }
 
-  Future<List<Map<String, dynamic>>> _fetchNotes() async {
-    String user_id = UserService.instance.user_id;
-
-    log("Generating report for $user_id");
-    // Fetch notes belonging to users betwen startDate and endDate
-    try {
-      final response = await Supabase.instance.client
-          .from('notes')
-          .select('''
-        id,
-        created_at,
-        mood,
-        notes_emotions(emotions(emotion_name)),
-        notes_activities(activities(activity_name))
-    ''')
-          .eq('user_id', user_id)
-          .gte('created_at', _startDate.toIso8601String())
-          .lte('created_at', _endDate.toIso8601String());
-
-      log("Response: $response");
-
-      getCounts(response);
-      sortCounts();
-      log("Moods: $_moodCounts");
-      log("Emotions: $_emotionCounts");
-      log("Activities: $_activityCounts");
-      return response;
-    } catch (e) {
-      log("Error while fetching user's notes: $e");
-      return [];
-    }
-  }
-
   void getCounts(List<Map<String, dynamic>> response) {
     _noteCount = response.length;
-    _notesSkipped =
-        DateTime.now().difference(_startDate).inDays - _noteCount + 1;
 
     for (final item in response) {
       // Count moods
@@ -155,109 +120,112 @@ class ReportService {
     );
   }
 
-  pw.Chart? _moodLineChart(List<Map<String, dynamic>> response) {
-    // Generate dates
-    final List<DateTime> dateList = List.generate(
-        _endDate.difference(_startDate).inDays + 1,
-        (index) => _startDate.add(Duration(days: index)));
+  pw.Chart? _moodBarChart(List<Map<String, dynamic>> response) {
+  final List<DateTime> dateList = List.generate(
+    _endDate.difference(_startDate).inDays + 1,
+    (index) {
+      final date = _startDate.add(Duration(days: index));
+      return DateTime(date.year, date.month, date.day);
+    },
+  );
 
-    // Generate which dates to show
-    final int numberOfLabels =
-        10 < dateList.length ? 10 : dateList.length; // Must be >2
-    final List<int> dateIndices = List.generate(numberOfLabels, (i) {
-      return ((i * (dateList.length - 1)) / (numberOfLabels - 1)).round();
-    });
+  final double barWidth = dateList.length <= 7
+    ? 30.0
+    : dateList.length <= 15
+        ? 20.0
+        : dateList.length <= 30
+            ? 10.0
+            : 5.0;
 
-    // Extract dates and moods only
-    final Map<DateTime, int> moodList = {
-      for (var entry in response)
-        DateTime.parse(entry['created_at'] as String).toLocal().copyWith(
-            hour: 0,
-            minute: 0,
-            second: 0,
-            millisecond: 0,
-            microsecond: 0): entry['mood'] as int
-    };
 
-    final pw.Widget chartTitle = pw.Center(
-      child: pw.Container(
-        child: pw.Text(
-          "Selected mood chart",
-          style: pw.TextStyle(font: pw.Font.times(), fontSize: 30)
-        )
-      )
+  final Map<DateTime, List<int>> moodsByDay = {};
+  for (var entry in response) {
+    final DateTime date = DateTime.parse(entry['created_at'] as String)
+        .toLocal()
+        .copyWith(hour: 0, minute: 0, second: 0, millisecond: 0, microsecond: 0);
+    final int mood = entry['mood'] as int;
+
+    moodsByDay.putIfAbsent(date, () => []).add(mood);
+  }
+
+  final Map<DateTime, double> moodAverages = {
+    for (var entry in moodsByDay.entries)
+      entry.key: (entry.value.reduce((a, b) => a + b) / entry.value.length) + 1
+  };
+
+  final int numberOfLabels = dateList.length < 10 ? dateList.length : 10;
+  final List<int> dateIndices = List.generate(numberOfLabels, (i) {
+    return ((i * (dateList.length - 1)) / (numberOfLabels - 1)).round();
+  });
+
+  final pw.Widget chartTitle = pw.Center(
+    child: pw.Container(
+      child: pw.Text(
+        "Average moods chart",
+        style: pw.TextStyle(font: pw.Font.times(), fontSize: 30),
+      ),
+    ),
+  );
+
+  final List<pw.PointChartValue> chartData = dateList.asMap().entries
+          .where((entry) => moodAverages.containsKey(entry.value))
+          .map((entry) {
+            final index = entry.key;
+            final date = entry.value;
+            final mood = moodAverages[date] ?? 0.0;
+            return pw.PointChartValue(index.toDouble(), mood);
+          }).toList();
+          
+  try {
+    final chart = pw.Chart(
+      title: chartTitle,
+      left: pw.Container(
+        alignment: pw.Alignment.topCenter,
+        margin: const pw.EdgeInsets.only(right: 5, top: 20),
+        child: pw.Transform.rotateBox(
+          angle: 3.14 / 2,
+          child: pw.Text('Average mood',
+              style: pw.TextStyle(font: pw.Font.times(), fontSize: 20)),
+        ),
+      ),
+      bottom: pw.Text('Note date',
+          style: pw.TextStyle(font: pw.Font.times(), fontSize: 20)),
+      grid: pw.CartesianGrid(
+        xAxis: pw.FixedAxis(
+          List.generate(dateList.length, (index) => index),
+          divisions: true,
+          format: (index) {
+            if (dateIndices.contains(index)) {
+              final date = dateList[index.toInt()];
+              return '${date.month}/${date.day}';
+            } else {
+              return '';
+            }
+          },
+          marginStart: barWidth,
+          marginEnd: barWidth,
+          angle: 3.14 / 6,
+        ),
+        yAxis: pw.FixedAxis([0, 1, 2, 3, 4, 5], 
+        divisions: true,
+        ),
+        
+      ),
+      datasets: [
+        pw.BarDataSet(
+          width: barWidth,
+          color: PdfColors.deepOrange400,
+          data: chartData,
+        ),
+      ],
     );
 
-    // Draw chart
-    try {
-      final chart = pw.Chart(
-        title: chartTitle,
-          left: pw.Container(
-              alignment: pw.Alignment.topCenter,
-              margin: const pw.EdgeInsets.only(right: 5, top: 60),
-              child: pw.Transform.rotateBox(
-                  angle: 3.14 / 2,
-                  child: pw.Text('Mood',
-                      style: pw.TextStyle(
-                          font: pw.Font.times(), fontSize: 20)))),
-          bottom: pw.Text('Note date',
-              style: pw.TextStyle(font: pw.Font.times(), fontSize: 20)),
-          grid: pw.CartesianGrid(
-              xAxis: pw.FixedAxis(
-                  // Generate a list for xAxis
-                  List.generate(dateList.length, (index) => index.toDouble()),
-                  divisions: true, format: (index) {
-                if (dateIndices.contains(index)) {
-                  final date = dateList[index.toInt()];
-                  return '${date.month}/${date.day}'; // Format date
-                } else {
-                  return '';
-                }
-              }, angle: 3.14 / 6),
-              yAxis: pw.FixedAxis([0, 1, 2, 3, 4],
-                  divisions: true) // Assign fixed mood values to yAxis
-              ),
-          datasets: [
-            pw.LineDataSet(
-              data: List<pw.PointChartValue>.generate(dateList.length, (index) {
-                // Assign values to corresponding dates on the chart
-                final date = dateList[index];
-                final mood = moodList[date];
-                return pw.PointChartValue(
-                    index.toDouble(), mood?.toDouble() ?? -1.0);
-              }),
-              drawSurface: true,
-              isCurved: true,
-              drawPoints: false,
-            )
-          ]);
-      return chart;
-    } catch (e) {
-      log("Exception: $e");
-      return null;
-    }
+    return chart;
+  } catch (e) {
+    log("Chart generation error: $e");
+    return null;
   }
-
-  Future<List<Map<String, dynamic>>> _fetchTestResults() async {
-
-    String user_id = UserService.instance.user_id;
-    try{
-      final response = await Supabase.instance.client
-        .from('phq-9_results')
-        .select('''
-        created_at,
-        points,
-        answers
-        ''')
-        .eq('user_id', user_id)
-        .gte('created_at', _startDate.toIso8601String())
-        .lte('created_at', _endDate.toIso8601String());
-      return response;
-    } catch(e)
-    {
-      return [];
-    }
-  }
+}
 
   pw.Widget _testResultsTable(List<Map<String,dynamic>> testResults)
   {
@@ -313,8 +281,10 @@ class ReportService {
   }
 
   Future<Uint8List> generateReport() async {
-    final notesResponse = await _fetchNotes();
-    final testResultsResponse = await _fetchTestResults();
+    final notesResponse = await DatabaseService.instance.fetchNotes(_startDate, _endDate);
+    getCounts(notesResponse);
+    sortCounts();
+    final testResultsResponse = await DatabaseService.instance.fetchTestResults(_startDate, _endDate);
 
 
     final pdf = pw.Document();
@@ -359,22 +329,31 @@ class ReportService {
         children: [
           // Report title
           pw.Container(
+            
               margin: pw.EdgeInsets.all(15),
-              child: pw.Text(
+              child: pw.Column(children: [
+              pw.Text(
                 'Note report',
                 style: pw.TextStyle(
                   font: pw.Font.timesBold(),
                   fontSize: 50,
+                )),
+              pw.Text(
+                'Date generated: ${DateTime.now().toLocal().toString().substring(0, 16)}',
+                style: pw.TextStyle(
+                  font: pw.Font.times(),
+                  fontSize: 15,
                 ),
-              )),
+              )
+              ])),
 
           pw.Text(
-            'Notes filled: $_noteCount\nNotes skipped: $_notesSkipped',
+            'Notes filled: $_noteCount\n',
             style: pw.TextStyle(font: pw.Font.times(), fontSize: 30),
           ),
 
           pw.SizedBox(
-              child: _moodLineChart(notesResponse),
+              child: _moodBarChart(notesResponse),
               height: chartSize,
               width: chartSize * 2),
 
@@ -497,17 +476,16 @@ class ReportService {
     try {
       final fileContent = await generateReport();
 
-      // TODO: This code works poorly, changes needed in the future (probably for path_provider)
-      final response = await FilePicker.platform.saveFile(
-          dialogTitle: "Choose Save Location",
-          fileName: "report.pdf",
-          bytes: Uint8List.fromList(fileContent));
+      String? selectedPath = await FilePicker.platform.getDirectoryPath(dialogTitle: "Choose Save Location");
 
-      log("Response: $response");
-
-      if (response == null) {
+      if (selectedPath == null) {
         return -1;
       }
+
+      final filePath = '$selectedPath/report.pdf';
+      final file = File(filePath);
+
+      await file.writeAsBytes(fileContent, flush: true);
 
       return 0;
     } catch (e, stacktrace) {

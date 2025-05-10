@@ -11,17 +11,17 @@ class CustomBlock extends StatelessWidget {
         widthFactor: 0.9,
         child: Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: Theme.of(context).primaryColor,
               borderRadius: BorderRadius.circular(16.0),
               boxShadow: [
                 BoxShadow(
-                  color:  Colors.black12,
+                  color: Colors.black12,
                   blurRadius: 5.0,
                   offset: Offset(2, 2),
                 ),
               ],
             ),
-            padding: EdgeInsets.all(15.0),
+            padding: EdgeInsets.all(14.0),
             child:child
         )
     );
