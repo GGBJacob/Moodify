@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 class LabeledIconChip extends StatelessWidget {
   final String label;
   final String? iconCodePoint;
-  final Color backgroundColor;
-  final Color iconColor;
-  final Color textColor;
+  final Color? backgroundColor;
+  final Color? iconColor;
+  final Color? textColor;
 
   const LabeledIconChip({
     super.key,
     required this.label,
     this.iconCodePoint,
-    this.backgroundColor = const Color(0xFF8C4A60),
-    this.iconColor = Colors.white,
-    this.textColor = Colors.white,
+    this.backgroundColor, //= const Color(0xFF8C4A60),
+    this.iconColor, // = Colors.white,
+    this.textColor //= Colors.white,
   });
 
   @override
@@ -26,13 +26,14 @@ class LabeledIconChip extends StatelessWidget {
         : Icons.help_outline;
 
     return Chip(
-      backgroundColor: backgroundColor,
+      side: BorderSide(width: 0),
+      backgroundColor: backgroundColor ?? Theme.of(context).colorScheme.onSecondary,
       label: Row(
         mainAxisSize: MainAxisSize.min,
         spacing: 5,
         children: [
-          Icon(iconData, size: 20, color: iconColor),
-          Text(label, style: TextStyle(color: textColor)),
+          Icon(iconData, size: 20, color: iconColor ?? Theme.of(context).colorScheme.tertiary),
+          Text(label, style: TextStyle(color: textColor ?? Theme.of(context).colorScheme.tertiary)),
         ],
       ),
     );

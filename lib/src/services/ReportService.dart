@@ -181,7 +181,7 @@ class ReportService {
       title: chartTitle,
       left: pw.Container(
         alignment: pw.Alignment.topCenter,
-        margin: const pw.EdgeInsets.only(right: 5, top: 60),
+        margin: const pw.EdgeInsets.only(right: 5, top: 20),
         child: pw.Transform.rotateBox(
           angle: 3.14 / 2,
           child: pw.Text('Average mood',
