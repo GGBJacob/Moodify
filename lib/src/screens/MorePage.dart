@@ -102,7 +102,7 @@ class _MorePageState extends State<MorePage> {
           builder: (context) => _emergencyNumbersPopup(context),
         );
       },
-      text: "Emergency Numbers List",
+      text: "Emergency numbers list",
     );
   }
 
