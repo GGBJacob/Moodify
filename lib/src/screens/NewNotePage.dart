@@ -31,6 +31,10 @@ class _NewNotePageState extends State<NewNotePage> {
   final List<int> _selectedEmotions = [];
   final List<int> _selectedActivities = [];
 
+  final ScrollController _activitiesScrollController = ScrollController();
+  final ScrollController _emotionsScrollController = ScrollController();
+
+
   @override
   void initState() {
     super.initState();
@@ -97,12 +101,12 @@ class _NewNotePageState extends State<NewNotePage> {
 
                           //Emotions
                           Text(style: TextStyle(fontSize: 20),'Emotions:'),
-                          _interactiveList(_selectedEmotions ,_emotions, () => _openInteractiveDialog("Emotions", _emotions, _selectedEmotions)), // Passing interactive dialog as reference
+                          _interactiveList(_selectedEmotions ,_emotions, () => _openInteractiveDialog("Emotions", _emotions, _selectedEmotions, _emotionsScrollController)), // Passing interactive dialog as reference
                           SizedBox(height:20),
 
                           //Activities
                           Text(style: TextStyle(fontSize: 20),'Activities:'),
-                          _interactiveList(_selectedActivities ,_activities, () => _openInteractiveDialog("Activities", _activities, _selectedActivities)), // Passing interactive dialog as reference
+                          _interactiveList(_selectedActivities ,_activities, () => _openInteractiveDialog("Activities", _activities, _selectedActivities, _activitiesScrollController)), // Passing interactive dialog as reference
                           SizedBox(height:20),
 
                           //Note
@@ -254,13 +258,27 @@ class _NewNotePageState extends State<NewNotePage> {
               runSpacing: 5.0,
               children: [
                 ...filteredElements.map(
-                  (element) => Chip(
-                    avatar: IconTheme(
-                      data: IconThemeData(color:Theme.of(context).colorScheme.secondary, size: 20),
-                      child:element['icon'] ?? Icon(Icons.help_outline)),
-                    label: Text(element['name']),
-                    backgroundColor: Theme.of(context).colorScheme.onSecondary,
-                    labelStyle: TextStyle(color: Theme.of(context).colorScheme.secondary),
+                  (element) => Container(
+                    padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.onSecondary,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          element['icon']?.icon ?? Icons.help_outline,
+                          size: 22,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
+                        SizedBox(width: 6),
+                        Text(
+                          element['name'],
+                          style: TextStyle(color: Theme.of(context).colorScheme.secondary),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
                 GestureDetector(
@@ -277,41 +295,69 @@ class _NewNotePageState extends State<NewNotePage> {
   }
 
   Future<void> _openInteractiveDialog(String title,
-          List<Map<String, dynamic>> elements, List<int> selectedElements) =>
+          List<Map<String, dynamic>> elements, List<int> selectedElements, ScrollController scrollController) =>
       showDialog(
         context: context,
         builder: (context) => StatefulBuilder(
           builder: (context, setDialogState) {
             return AlertDialog(
               title: Text(title),
-              content: Wrap(
-                spacing: 8.0,
-                children: elements.map((element) {
-                  final isSelected = selectedElements.contains(element['id']);
-                  return GestureDetector(
-                    onTap: () {
-                      setDialogState(() {
-                        if (isSelected) {
-                          selectedElements.remove(element['id']);
-                        } else {
-                          selectedElements.add(element['id']);
-                        }
-                      });
-                  setState(() {});
-                },
-                child: Chip(
-                  side: BorderSide(color: isSelected ? Theme.of(context).colorScheme.onSecondary : Theme.of(context).colorScheme.tertiary),
-                  avatar: IconTheme(
-                    data: IconThemeData(color: isSelected ? Theme.of(context).colorScheme.secondary: Theme.of(context).colorScheme.onTertiary, size: 20),
-                    child:element['icon'] ?? Icon(Icons.help_outline)),
-                  label: Text(element['name']),
-                  backgroundColor:
-                  isSelected ? Theme.of(context).colorScheme.onSecondary : Theme.of(context).colorScheme.tertiary,
-                  labelStyle: TextStyle(
-                    color: isSelected ? Theme.of(context).colorScheme.tertiary: Theme.of(context).colorScheme.onTertiary),
+              content: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxHeight: 200),
+                  child:Scrollbar(
+                    controller: scrollController,
+                    thumbVisibility: true,
+                    thickness: 4,
+                    radius: Radius.circular(10),
+                    child:SingleChildScrollView(
+                      controller: scrollController,
+                      child: Wrap(
+                      spacing: 8.0,
+                      children: elements.map((element) {
+                        final isSelected = selectedElements.contains(element['id']);
+                        return GestureDetector(
+                          onTap: () {
+                            setDialogState(() {
+                              if (isSelected) {
+                                selectedElements.remove(element['id']);
+                              } else {
+                                selectedElements.add(element['id']);
+                              }
+                            });
+                        setState(() {});
+                      },
+                      child:
+                      Container(
+                          margin: EdgeInsets.only(bottom: 8),
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: isSelected ? Theme.of(context).colorScheme.onSecondary : Theme.of(context).colorScheme.tertiary,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            spacing: 6,
+                            children: [
+                              Icon(
+                                element['icon']?.icon ?? Icons.help_outline,
+                                size: 22,
+                                color: isSelected ? Theme.of(context).colorScheme.secondary: Theme.of(context).colorScheme.onTertiary,
+                              ),
+                              Text(
+                                element['name'],
+                                style: TextStyle(color: isSelected ? Theme.of(context).colorScheme.tertiary: Theme.of(context).colorScheme.onTertiary),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                      }).toList()
+                    )
                   )
-                );
-                }).toList()));
+                )
+              )
+            );
           },
         ),
       );

@@ -27,6 +27,12 @@ class _SettingsPageState extends State<SettingsPage> {
   bool _startDateError = false;
   bool _endDateError = false;
 
+  @override
+  void initState() {
+    super.initState();
+    _endDateController.text = 'TODAY';
+  }
+
 Future<void> _logout() async {
   try {
     await Supabase.instance.client.auth.signOut();
@@ -235,12 +241,12 @@ Future<void> _logout() async {
     reportService.init(_startDate, _endDate);
 
     // Check result
-    final bool success = await reportService.saveReport() == 0;
+    final int success = await reportService.saveReport();
 
     ScaffoldMessenger.of(context).clearSnackBars();
 
     // Display success snack bar
-    if (success) {
+    if (success == 0) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
           behavior: SnackBarBehavior.floating,
           content: Row(
@@ -255,6 +261,8 @@ Future<void> _logout() async {
       return;
     }
 
+    List<String> errorMessages = ["Report generation failed!", "Access denied!"];
+    final String errorMessage = errorMessages[success-1];
     // Display success task bar
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
@@ -262,7 +270,7 @@ Future<void> _logout() async {
           children: [
             Icon(Icons.close, color: Colors.white),
             SizedBox(width: 20),
-            Text('Report generation failed!'),
+            Text(errorMessage),
           ],
         ),
         backgroundColor: Colors.red,

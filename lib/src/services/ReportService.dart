@@ -479,7 +479,7 @@ class ReportService {
       String? selectedPath = await FilePicker.platform.getDirectoryPath(dialogTitle: "Choose Save Location");
 
       if (selectedPath == null) {
-        return -1;
+        return 1;
       }
 
       final filePath = '$selectedPath/report.pdf';
@@ -488,10 +488,14 @@ class ReportService {
       await file.writeAsBytes(fileContent, flush: true);
 
       return 0;
-    } catch (e, stacktrace) {
+    }on PathAccessException catch(e) {
+      log("Path access error: $e");
+      return 2;
+    }
+    catch (e, stacktrace) {
       log("Error saving file: $e");
       log('$stacktrace');
-      return -1;
+      return 1;
     }
   }
 }
