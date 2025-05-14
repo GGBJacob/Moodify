@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:moodify/src/components/PageTemplate.dart';
 import 'package:moodify/src/screens/AuthPage.dart';
 import 'package:moodify/src/services/ReportService.dart';
+import 'package:moodify/src/themes/colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:moodify/src/utils/themes/ThemeProvider';
 import 'package:provider/provider.dart';
@@ -33,31 +34,32 @@ class _SettingsPageState extends State<SettingsPage> {
     _endDateController.text = 'TODAY';
   }
 
-Future<void> _logout() async {
-  try {
-    await Supabase.instance.client.auth.signOut();
-    
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => AuthPage()),
-      );
-    }
-  } catch (e) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Logout failed: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
+  Future<void> _logout() async {
+    try {
+      await Supabase.instance.client.auth.signOut();
+
+      if (mounted) {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(builder: (_) => AuthPage()),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logout failed: ${e.toString()}',
+                style: TextStyle(color: whitewhite)),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
-}
 
   Widget _buildLogoutButton() {
     return ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.red,
+        backgroundColor: contrastRed,
         textStyle: const TextStyle(fontSize: 20),
       ),
       onPressed: () async {
@@ -72,13 +74,18 @@ Future<void> _logout() async {
                 child: const Text('Cancel'),
               ),
               TextButton(
+                style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.resolveWith((states) {
+                  return contrastRed;
+                })),
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Logout', style: TextStyle(color: Colors.red)),
+                child:
+                    const Text('Logout', style: TextStyle(color: whitewhite)),
               ),
             ],
           ),
         );
-        
+
         if (confirm == true) {
           await _logout();
         }
@@ -108,7 +115,8 @@ Future<void> _logout() async {
               const Icon(Icons.email, size: 16),
               const SizedBox(width: 8),
               Text(
-                Supabase.instance.client.auth.currentUser?.email ?? 'Not logged in',
+                Supabase.instance.client.auth.currentUser?.email ??
+                    'Not logged in',
                 style: const TextStyle(fontSize: 16, color: Colors.grey),
               ),
             ],
@@ -119,12 +127,12 @@ Future<void> _logout() async {
             spacing: 5,
             children: [
               const Text(style: TextStyle(fontSize: 20), 'Theme'),
-
               Switch(
-                
-                value: Provider.of<ThemeProvider>(context, listen: false).isDarkMode,
+                value: Provider.of<ThemeProvider>(context, listen: false)
+                    .isDarkMode,
                 onChanged: (value) {
-                  Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
+                  Provider.of<ThemeProvider>(context, listen: false)
+                      .toggleTheme();
                 },
                 thumbIcon: WidgetStateProperty.resolveWith((states) {
                   return states.contains(WidgetState.selected)
@@ -146,7 +154,7 @@ Future<void> _logout() async {
             child: const Text('Export report'),
           ),
           const SizedBox(height: 20),
-          _buildLogoutButton(), 
+          _buildLogoutButton(),
         ],
       )),
       PageTemplate.buildBottomSpacing(context)
@@ -155,29 +163,32 @@ Future<void> _logout() async {
 
   Widget _popUp() {
     return StatefulBuilder(
-      builder: (BuildContext context, StateSetter dialogSetState) {
-        return AlertDialog(
+        builder: (BuildContext context, StateSetter dialogSetState) {
+      return AlertDialog(
         title: Text('Export report'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('Choose start and end dates'),
-            SizedBox(height:20),
+            SizedBox(height: 20),
             _datePicker(true),
-            SizedBox(height:20),
+            SizedBox(height: 20),
             _datePicker(false),
           ],
         ),
         actions: [
           TextButton(
-              onPressed: () {Navigator.pop(context); _resetDialog();},
+              onPressed: () {
+                Navigator.pop(context);
+                _resetDialog();
+              },
               child: Text('Cancel')),
           TextButton(
               onPressed: () => _validateDialog(context, dialogSetState),
               child: Text('Export'))
         ],
       );
-      });
+    });
   }
 
   void _resetDialog() {
@@ -187,19 +198,16 @@ Future<void> _logout() async {
     _endDateController.text = 'TODAY';
   }
 
-  void _validateDialog(BuildContext context, StateSetter dialogSetState)
-  {
-    if (_endDate.difference(_startDate).inDays <= 0)
-    {
+  void _validateDialog(BuildContext context, StateSetter dialogSetState) {
+    if (_endDate.difference(_startDate).inDays <= 0) {
       log("Invalid date");
       // Invalid period entered
       dialogSetState(() {
         _startDateError = true;
       });
       return;
-    }
-    else if(_endDate.isAfter(DateTime.now()) && _startDate.isAfter(DateTime.now()))
-    {
+    } else if (_endDate.isAfter(DateTime.now()) &&
+        _startDate.isAfter(DateTime.now())) {
       log("Invalid date");
       // Invalid period entered
       dialogSetState(() {
@@ -207,9 +215,7 @@ Future<void> _logout() async {
         _endDateError = true;
       });
       return;
-    }
-    else if(_startDate.isAfter(DateTime.now()))
-    {
+    } else if (_startDate.isAfter(DateTime.now())) {
       log("Invalid date");
       // Invalid period entered
       dialogSetState(() {
@@ -230,11 +236,12 @@ Future<void> _logout() async {
         duration: Duration(days: 1),
         content: Row(
           children: [
-            CircularProgressIndicator(),
+            CircularProgressIndicator(color: whitewhite),
             SizedBox(width: 20),
-            Text('Generating report...'),
+            Text('Generating report...', style: TextStyle(color: whitewhite)),
           ],
-        )));
+        ),
+        backgroundColor: Theme.of(context).colorScheme.onSecondary));
 
     // Generate report
     final ReportService reportService = ReportService();
@@ -253,7 +260,8 @@ Future<void> _logout() async {
             children: [
               Icon(Icons.check_circle, color: Colors.white),
               SizedBox(width: 20),
-              Text('Report generated successfully!'),
+              Text('Report generated successfully!',
+                  style: TextStyle(color: whitewhite)),
             ],
           ),
           backgroundColor: Colors.green,
@@ -261,8 +269,11 @@ Future<void> _logout() async {
       return;
     }
 
-    List<String> errorMessages = ["Report generation failed!", "Access denied!"];
-    final String errorMessage = errorMessages[success-1];
+    List<String> errorMessages = [
+      "Report generation failed!",
+      "Access denied!"
+    ];
+    final String errorMessage = errorMessages[success - 1];
     // Display success task bar
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
         behavior: SnackBarBehavior.floating,
@@ -270,7 +281,7 @@ Future<void> _logout() async {
           children: [
             Icon(Icons.close, color: Colors.white),
             SizedBox(width: 20),
-            Text(errorMessage),
+            Text(errorMessage, style: TextStyle(color: whitewhite)),
           ],
         ),
         backgroundColor: Colors.red,
@@ -279,6 +290,7 @@ Future<void> _logout() async {
 
   Widget _datePicker(bool start) {
     return TextField(
+      cursorColor: Theme.of(context).colorScheme.onPrimary,
       controller: start ? _startDateController : _endDateController,
       decoration: InputDecoration(
         errorText: start

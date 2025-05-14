@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:moodify/src/utils/themes/colors.dart';
-import 'package:moodify/src/utils/themes/switchTheme.dart';
+import 'package:moodify/src/themes/colors.dart';
+import 'package:moodify/src/themes/switchTheme.dart';
 
 ThemeData darkTheme = ThemeData(
   brightness: Brightness.dark,
@@ -27,8 +27,10 @@ ThemeData darkTheme = ThemeData(
   textButtonTheme: TextButtonThemeData(
     style: TextButton.styleFrom(
         backgroundColor: blueish,
-        foregroundColor: textOnSurfaceColorDark // kolor tekstu
-        ),
+        foregroundColor: textOnSurfaceColorDark,
+        shadowColor:darkColor // kolor tekstu
+        )
+        
   ),
   floatingActionButtonTheme: FloatingActionButtonThemeData(
       backgroundColor: accentColorDark, foregroundColor: darkColor),
@@ -56,7 +58,10 @@ ThemeData darkTheme = ThemeData(
         borderSide: BorderSide(color: textColorDark),
       ),
       labelStyle: TextStyle(color: textColorDark)),
+      
   cardTheme: CardTheme(
     color: darkColor,
   ),
+
+  
 );

@@ -4,6 +4,8 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:moodify/src/components/Menu.dart';
 import 'package:moodify/src/screens/EmailVerificationPage.dart';
 import 'package:moodify/src/services/AuthWrapper.dart';
+import 'package:moodify/src/themes/darkTheme.dart';
+import 'package:moodify/src/themes/lightTheme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -15,16 +17,14 @@ void main() async {
   WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
   FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Supabase.initialize(
-    anonKey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2YW9iaXFiZHdvZnFsbnZyZ2t0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYzNjMzOTAsImV4cCI6MjA1MTkzOTM5MH0.n2bnkip1mPwT62wSRVGdWLg0BNe3dOYTzeL7H4AmllE",
-    url: "https://ivaobiqbdwofqlnvrgkt.supabase.co"
-  );
+      anonKey:
+          "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2YW9iaXFiZHdvZnFsbnZyZ2t0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYzNjMzOTAsImV4cCI6MjA1MTkzOTM5MH0.n2bnkip1mPwT62wSRVGdWLg0BNe3dOYTzeL7H4AmllE",
+      url: "https://ivaobiqbdwofqlnvrgkt.supabase.co");
   await dotenv.load(fileName: ".env");
-  runApp(
-   ChangeNotifierProvider<ThemeProvider>( 
-      create: (context) => ThemeProvider(), 
-      child: MyApp(),
-    )
-  );
+  runApp(ChangeNotifierProvider<ThemeProvider>(
+    create: (context) => ThemeProvider(),
+    child: MyApp(),
+  ));
 }
 
 class MyApp extends StatefulWidget {
@@ -36,7 +36,13 @@ class _MyAppState extends State<MyApp> {
   final GlobalKey<NavigatorState> _navigatorKey = GlobalKey<NavigatorState>();
   StreamSubscription? _sub;
 
-   final List<String> imagesToCache = ['assets/very_sad.png', 'assets/sad.png', 'assets/neutral.png', 'assets/happy.png', 'assets/very_happy.png'];
+  final List<String> imagesToCache = [
+    'assets/very_sad.png',
+    'assets/sad.png',
+    'assets/neutral.png',
+    'assets/happy.png',
+    'assets/very_happy.png'
+  ];
 
   void _preloadImages() {
     for (int i = 0; i < imagesToCache.length; i++) {
@@ -45,7 +51,7 @@ class _MyAppState extends State<MyApp> {
     afterPreload();
   }
 
-  void afterPreload() async{
+  void afterPreload() async {
     await Future.delayed(const Duration(milliseconds: 1500));
     FlutterNativeSplash.remove();
   }
@@ -82,8 +88,7 @@ class _MyAppState extends State<MyApp> {
   Future<void> _loadDarkMode() async {
     final prefs = await SharedPreferences.getInstance();
     bool isDarkMode = prefs.getBool('isDarkMode') ?? false;
-    if (isDarkMode)
-    {
+    if (isDarkMode) {
       Provider.of<ThemeProvider>(context, listen: false).toggleTheme();
     }
   }
@@ -119,7 +124,7 @@ class _MyAppState extends State<MyApp> {
         switch (settings.name) {
           default:
             return MaterialPageRoute(
-              builder: (context) => AuthWrapper(authenticatedChild: Menu()));
+                builder: (context) => AuthWrapper(authenticatedChild: Menu()));
         }
       },
     );
