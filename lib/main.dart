@@ -4,13 +4,11 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:moodify/src/components/Menu.dart';
 import 'package:moodify/src/screens/EmailVerificationPage.dart';
 import 'package:moodify/src/services/AuthWrapper.dart';
-import 'package:moodify/src/themes/darkTheme.dart';
-import 'package:moodify/src/themes/lightTheme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:app_links/app_links.dart';
-import 'package:moodify/src/utils/themes/ThemeProvider';
+import 'package:moodify/src/themes/ThemeProvider';
 import 'package:provider/provider.dart';
 
 void main() async {

@@ -1,12 +1,11 @@
 import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/PageTemplate.dart';
 import 'package:moodify/src/screens/AuthPage.dart';
 import 'package:moodify/src/services/ReportService.dart';
 import 'package:moodify/src/themes/colors.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:moodify/src/utils/themes/ThemeProvider';
+import 'package:moodify/src/themes/ThemeProvider';
 import 'package:provider/provider.dart';
 
 import '../components/CustomBlock.dart';
