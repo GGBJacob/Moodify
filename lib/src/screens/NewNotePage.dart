@@ -266,6 +266,8 @@ class _NewNotePageState extends State<NewNotePage> {
           child: Wrap(spacing: 8.0, runSpacing: 5.0, children: [
         ...filteredElements.map(
           (element) => Container(
+            height: 32,
+            margin: EdgeInsets.only(top: 10),
             padding: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.onSecondary,
