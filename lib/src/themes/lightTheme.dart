@@ -67,4 +67,10 @@ ThemeData lightTheme = ThemeData(
             ? lighterPinkish
             : whitewhite;
       }),
-    ));
+    ),
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: blackblack,              // kolor kursora
+      selectionColor: accentColorLight,  // kolor zaznaczenia tekstu
+      selectionHandleColor: pinkish,     // kolor "kółka"/znacznika
+    )
+    );
