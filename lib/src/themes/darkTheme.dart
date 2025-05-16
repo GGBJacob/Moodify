@@ -13,7 +13,7 @@ ThemeData darkTheme = ThemeData(
         surface: surfaceColorDark,
         onSurface: textOnSurfaceColorDark,
         secondary: darkColor,
-        onSecondary: blueish,
+        onSecondary: surfaceColorDark,
         tertiary: accentColorDark,
         onTertiary: darkColor),
     textTheme: TextTheme(
@@ -23,10 +23,11 @@ ThemeData darkTheme = ThemeData(
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-            backgroundColor: blueish, foregroundColor: accentColorDark)),
+            backgroundColor: surfaceColorDark,
+            foregroundColor: accentColorDark)),
     textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-            backgroundColor: blueish,
+            backgroundColor: surfaceColorDark,
             foregroundColor: textOnSurfaceColorDark,
             shadowColor: darkColor // kolor tekstu
             )),
@@ -41,9 +42,9 @@ ThemeData darkTheme = ThemeData(
     appBarTheme:
         AppBarTheme(backgroundColor: blueish, foregroundColor: accentColorDark),
     chipTheme: ChipThemeData(
-        backgroundColor: blueish,
+        backgroundColor: surfaceColorDark,
         labelStyle: TextStyle(color: textOnSurfaceColorDark),
-        side: BorderSide(color: blueish)),
+        side: BorderSide(color: surfaceColorDark)),
     dialogTheme: DialogTheme(
       backgroundColor: mainColorDark,
     ),
