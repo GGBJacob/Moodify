@@ -49,7 +49,7 @@ class _AuthFormState extends State<AuthForm> {
               : "Login successful";
           resultColor = Colors.green;
         } else {
-          resultMessage = result.error.toString();
+          resultMessage = result.error.message;
           resultColor = Colors.red;
         }
       });

@@ -478,7 +478,7 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _risksBlock() {
-    final risks = _risks ?? [];
+    final risks = (_risks ?? []).where((r) => r.first.toLowerCase() != "healthy").toList();
 
     final sortedRisks = List<Pair<String, double>>.from(risks)
       ..sort((a, b) => b.second.compareTo(a.second)); // sort descending

@@ -47,12 +47,12 @@ Download the latest APK release here:
   - A popup dialog displays these hotlines, allowing users to select and call a number instantly.
   - Integrated with `url_launcher` for seamless phone calls.
 
-### 6. AI-Driven Note Assessment with ChatGPT
-- **Description**: Uses a ChatGPT model to analyze notes and assess mental health risks.
+### 6. AI-Driven Note Assessment powered by an LLM
+- **Description**: Uses an OpenAI text embeddings model to analyze notes and assess mental health risks.
 - **Details**:
   - Notes are scored based on their content.
   - Measures cosine distance of note scores from predefined mental health categories:
-    - Addiction, ADHD, Alcoholism, Anxiety, Autism, Bipolar, Borderline, Depression, Health Anxiety, Lonely, PTSD, Social Anxiety, Suicide, Healthy.
+    - Addiction, ADHD, Alcoholism, Anxiety, Autism, Bipolar, Borderline, Depression, Health Anxiety, Lonely, PTSD, Social Anxiety, Suicide.
   - Provides a risk calculation to identify potential mental health concerns.
 
 ## Getting Started
