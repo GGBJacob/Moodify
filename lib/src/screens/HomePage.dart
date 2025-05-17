@@ -33,6 +33,7 @@ class _HomePageState extends State<HomePage> {
         isSummaryLoading = true;
       });
       _loadData(false);
+      _loadRisks();
     });
     super.initState();
   }
