@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
 import 'package:moodify/src/components/PageTemplate.dart';
 import 'package:moodify/src/screens/TestPage.dart';
+import 'package:moodify/src/themes/colors.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class MorePage extends StatefulWidget {
@@ -85,8 +86,10 @@ class _MorePageState extends State<MorePage> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Could not open the webpage'),
-            behavior: SnackBarBehavior.floating),
+            content: Text('Could not open the webpage', style: TextStyle(color: whitewhite),),
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: Colors.red),
+            
         );
       }
     },
@@ -102,7 +105,7 @@ class _MorePageState extends State<MorePage> {
           builder: (context) => _emergencyNumbersPopup(context),
         );
       },
-      text: "Emergency Numbers List",
+      text: "Emergency numbers list",
     );
   }
 
@@ -137,8 +140,9 @@ class _MorePageState extends State<MorePage> {
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text('Could not dial ${entry['number']}'),
-                      behavior: SnackBarBehavior.floating),
+                      content: Text('Could not dial ${entry['number']}',style: TextStyle(color: whitewhite)),
+                      behavior: SnackBarBehavior.floating,
+                       backgroundColor: Colors.red),
                   );
                 }
               },

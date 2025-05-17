@@ -6,6 +6,8 @@ const Color whitewhite = Color(0xFFFFFFFF);
 const Color pinkish = Color(0xFF8C4A60);
 Color lighterPinkish = Color.fromARGB(255, 149, 49, 97).withAlpha(100);
 const Color blueish = Color(0xFF2B4854);
+const Color contrastRed = Color(0xFFE53935);
+
 
 //darkmode
 const Color mainColorDark = Color(0xFF354B4D);

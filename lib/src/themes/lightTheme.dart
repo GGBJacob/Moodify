@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:moodify/src/utils/themes/colors.dart';
-import 'package:moodify/src/utils/themes/switchTheme.dart';
+import 'package:moodify/src/themes/colors.dart';
+import 'package:moodify/src/themes/switchTheme.dart';
 
 ThemeData lightTheme = ThemeData(
     brightness: Brightness.light,
@@ -26,9 +26,10 @@ ThemeData lightTheme = ThemeData(
             backgroundColor: pinkish, foregroundColor: secondaryColorLight)),
     textButtonTheme: TextButtonThemeData(
       style: TextButton.styleFrom(
-        backgroundColor: pinkish,
-        foregroundColor: secondaryColorLight, // kolor tekstu
-      ),
+          backgroundColor: pinkish,
+          foregroundColor: secondaryColorLight,
+          shadowColor: blackblack // kolor tekstu
+          ),
     ),
     floatingActionButtonTheme: FloatingActionButtonThemeData(
         backgroundColor: accentColorLight, foregroundColor: pinkish),
@@ -66,4 +67,10 @@ ThemeData lightTheme = ThemeData(
             ? lighterPinkish
             : whitewhite;
       }),
-    ));
+    ),
+    textSelectionTheme: TextSelectionThemeData(
+      cursorColor: blackblack,              // kolor kursora
+      selectionColor: accentColorLight,  // kolor zaznaczenia tekstu
+      selectionHandleColor: pinkish,     // kolor "kółka"/znacznika
+    )
+    );

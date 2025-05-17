@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:moodify/src/components/CustomBlock.dart';
+import 'package:moodify/src/themes/colors.dart';
 import '../services/TestService.dart';
 
 class TestPage extends StatefulWidget {
@@ -134,7 +135,9 @@ class _TestPageState extends State<TestPage> {
                 title: Text(option),
                 value: optionIndex,
                 groupValue: selectedAnswers[index],
-                activeColor: Theme.of(context).colorScheme.onSecondary,
+                activeColor: Theme.of(context).brightness == Brightness.light
+                    ? selectedBorderLight
+                    : todayBorderDark,
                 onChanged: (int? value) {
                   setState(() {
                     selectedAnswers[index] = value!;

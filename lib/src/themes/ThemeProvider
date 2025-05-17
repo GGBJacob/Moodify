@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:moodify/src/utils/themes/darkTheme.dart';
-import 'package:moodify/src/utils/themes/lightTheme.dart';
+import 'package:moodify/src/themes/darkTheme.dart';
+import 'package:moodify/src/themes/lightTheme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 

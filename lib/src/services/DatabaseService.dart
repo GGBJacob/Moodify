@@ -309,13 +309,13 @@ Future<List<Map<String, dynamic>>> fetchEmotions() async {
       }
 
       Map<int, int> moodAverages = {}; 
-      DateTime current_date = DateTime.parse(response.first['created_at']);
+      DateTime current_date = DateTime.parse(response.first['created_at']).toLocal();
 
       int counter = 0;
       int sum = 0;
       for (var item in response) {
         
-        DateTime temp_date = DateTime.parse(item['created_at']);
+        DateTime temp_date = DateTime.parse(item['created_at']).toLocal();
         int mood = item['mood'] as int;
 
         
