@@ -18,6 +18,7 @@ class _NewNotePageState extends State<NewNotePage> {
   //Moods
   int? _selectedMood;
   bool isSaving = false;
+  bool displayMoodError = false;
   final List<List<dynamic>> moodPairs = [
     [Icons.sentiment_very_dissatisfied_rounded, Color(0xFF840303)],
     [Icons.sentiment_dissatisfied_rounded, Colors.red],
@@ -76,7 +77,11 @@ class _NewNotePageState extends State<NewNotePage> {
         ),
         title: Text('New note'),
       ),
-      body: SingleChildScrollView(
+      body: GestureDetector(
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child:SingleChildScrollView(
           child: Align(
         alignment: Alignment.topCenter,
         child: Column(children: [
@@ -99,18 +104,30 @@ class _NewNotePageState extends State<NewNotePage> {
                     //Mood
                     Text(style: TextStyle(fontSize: 20), 'Mood:'),
                     _moodsBlock(),
-                    SizedBox(height: 20),
+                    Visibility(
+                          visible: displayMoodError,
+                          maintainSize: true,
+                          maintainAnimation: true,
+                          maintainState: true,
+                          child:
+                            Center(
+                              child:Text(
+                            "Please select a mood",
+                            style: TextStyle(color: Colors.red),
+                          ))),
 
                     //Emotions
                     Text(style: TextStyle(fontSize: 20), 'Emotions:'),
                     _interactiveList(
                         _selectedEmotions,
                         _emotions,
-                        () => _openInteractiveDialog(
+                        (){
+                          FocusScope.of(context).requestFocus(FocusNode());
+                          _openInteractiveDialog(
                             "Emotions",
                             _emotions,
                             _selectedEmotions,
-                            _emotionsScrollController)), // Passing interactive dialog as reference
+                            _emotionsScrollController);}), // Passing interactive dialog as reference
                     SizedBox(height: 20),
 
                     //Activities
@@ -118,11 +135,13 @@ class _NewNotePageState extends State<NewNotePage> {
                     _interactiveList(
                         _selectedActivities,
                         _activities,
-                        () => _openInteractiveDialog(
+                        (){
+                          FocusScope.of(context).requestFocus(FocusNode());
+                          _openInteractiveDialog(
                             "Activities",
                             _activities,
                             _selectedActivities,
-                            _activitiesScrollController)), // Passing interactive dialog as reference
+                            _activitiesScrollController);}), // Passing interactive dialog as reference
                     SizedBox(height: 20),
 
                     //Note
@@ -145,6 +164,7 @@ class _NewNotePageState extends State<NewNotePage> {
                         onPressed: isSaving
                             ? null
                             : () {
+                                FocusScope.of(context).unfocus(); // Hide the keyboard if open
                                 //Note output
                                 _textFormOutput = _textController.text;
 
@@ -152,6 +172,11 @@ class _NewNotePageState extends State<NewNotePage> {
                                 if (_formGlobalKey.currentState!.validate() &&
                                     _selectedMood != null) {
                                   _handleSaveNote();
+                                }
+                                else{
+                                  setState(() {
+                                    displayMoodError = true;
+                                  });
                                 }
                               },
                         style: FilledButton.styleFrom(
@@ -166,7 +191,7 @@ class _NewNotePageState extends State<NewNotePage> {
           SizedBox(height: 20)
         ]),
       )),
-    );
+    ));
   }
 
   Future<void> _handleSaveNote() async {
@@ -243,6 +268,7 @@ class _NewNotePageState extends State<NewNotePage> {
             onTap: () {
               setState(() {
                 _selectedMood = index;
+                displayMoodError = false;
               });
             },
             child: Icon(
